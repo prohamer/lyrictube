@@ -32,16 +32,22 @@
 	/* 手機版樣式 */
 	@media (max-width: 768px) {
 	    .video-container {
-	        position: sticky;  /* 固定定位 */
-	        top: 0;           /* 固定在頂部 */
-	        z-index: 100;     /* 確保在其他內容上方 */
-	        margin-bottom: 10px; /* 與下方內容保持間距 */
+		position: sticky;
+		top: 60px;  /* 加大這個值，配合 Google Sites 的標題列高度 */
+		z-index: 100;
+		margin-bottom: 10px;
+		/* 可能需要額外的 margin-top */
+		margin-top: 60px;  /* 加入這行，確保初始位置也正確 */
+	    }
+	
+	    body {
+		/* 確保有足夠的頂部空間 */
+		padding-top: 60px;
 	    }
 	    
-	    /* 確保容器在手機版時正確排列 */
 	    .container {
-	        flex-direction: column;
-	        padding-top: 0;
+		flex-direction: column;
+		padding-top: 0;
 	    }
 	}
         .video-container iframe {

@@ -30,6 +30,22 @@
             height: 0;
             background: #000;
         }
+
+	/* 手機版樣式 */
+	@media (max-width: 768px) {
+	    .video-container {
+		position: sticky;  /* 固定定位 */
+		top: 0;           /* 固定在頂部 */
+		z-index: 100;     /* 確保在其他內容上方 */
+		margin-bottom: 10px; /* 與下方內容保持間距 */
+	    }
+	    
+	    /* 確保容器在手機版時正確排列 */
+	    .container {
+		flex-direction: column;
+		padding-top: 0;
+	    }
+	}
         .video-container iframe {
             position: absolute;
             top: 0;

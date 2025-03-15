@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+		<html>
+		<head>
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lyrics Player</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background: #000;  /* 原本是 #f9f9f9 */
+			color: #fff;      /* 加入這行確保文字顏色 */
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+        }
+        .video-container {
+            flex: 2;
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            background: #000;
+        }
+		/* 手機版樣式 */
+        @media (max-width: 768px) {
+          .video-container {
+                position: sticky;
+                top: 60px;  /* 加大這個值，配合 Google Sites 的標題列高度 */
+                z-index: 100;
+                margin-bottom: 10px;
+                /* 可能需要額外的 margin-top */
+                margin-top: 60px;  /* 加入這行，確保初始位置也正確 */
+            }
+
+            body {
+               /* 確保有足夠的頂部空間 */
+                 padding-top: 60px;
+            }
+			
+            .container {
+                flex-direction: column;
+                padding-top: 0;
+            }
+        }
+		
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .lyrics-container {
+            flex: 1;
+            height: calc(100vh - 40px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #1a1a1a;  /* 原本是 white */
+			color: #fff;         /* 加入這行 */
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .lyrics-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: #2d2d2d;  /* 原本是 #f0f0f0 */
+			border-bottom: 1px solid #333;  /* 原本是 #ddd */
+            border-bottom: 1px solid #ddd;
+        }
+        .title {
+            font-weight: bold;
+        }
+        .mode-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .mode-label {
+            font-size: 0.9em;
+            color: #ccc;  /* 原本是 #666 */
+        }
+        #lyricsDisplay {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .lyrics-line {
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+			color: #ccc;  /* 加入這行 */
+        }
+        .lyrics-line:hover {
+            background-color: #333;  /* 原本是 #f0f0f0 */
+        }
+        .lyrics-line.active {
+            background-color: #2196F3;  /* 可以保留藍色或改成 #1a1a1a */
+			color: #fff;  /* 加入這行 */
+            font-weight: bold;
+        }
+        .loop-btn {
+            padding: 5px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.2s;
+            color: #c79ac5;  /* 原本是 #666 */
+        }
+        .loop-btn:hover {
+            opacity: 1;
+        }
+        .loop-btn.active {
+            color: #ec21f3;
+            opacity: 1;
+        }
+        .lyrics-text {
+            flex: 1;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .lyrics-container {
+                height: 50vh;
+            }
+        }
+        /* 說明按鈕樣式 */
+        .help-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+		.help-button:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+        /* 說明面板樣式 */
+        .help-panel {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            transition: bottom 0.3s ease;
+            z-index: 999;
+            max-height: 80vh;
+            overflow-y: auto;
+			color: #000;
+        }
+        .help-panel.show {
+            bottom: 0;
+        }
+        .help-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .help-section {
+            margin-bottom: 20px;
+        }
+        .help-section h3 {
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        .help-list {
+            list-style: none;
+            padding: 0;
+        }
+        .help-list li {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .help-icon {
+            color: #666;
+            width: 24px;
+            text-align: center;
+        }
+        .close-help {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 998;
+        }
+        .backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        @media (max-width: 768px) {
+            .help-panel {
+                max-height: 70vh;
+            }
+        }
+    </style>
+
+
+    <div class="container">
+        <div class="video-container">
+            <div id="player"></div>
+        </div>
+        <div class="lyrics-container">
+            <div class="lyrics-header">
+                <div class="title">字幕同步播放器</div>
+                <div class="mode-switch">
+                    <span class="mode-label">自動播放模式</span>
+                    <label class="switch">
+                        <input type="checkbox" id="modeToggle" checked="">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div id="lyricsDisplay"></div>
+        </div>
+    </div>
+    <!-- 說明按鈕 -->
+    <button class="help-button" onclick="toggleHelp()">
+        <i class="fas fa-question-circle"></i>
+        使用說明
+    </button>
+    <!-- 背景遮罩 -->
+    <div class="backdrop" onclick="toggleHelp()"></div>
+    <!-- 說明面板 -->
+    <div class="help-panel">
+        <button class="close-help" onclick="toggleHelp()">×</button>
+        <div class="help-content">
+		<div class="help-section">
+                <h3>播放模式</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-play-circle help-icon"></i>
+                        <span>自動播放模式：影片會連續播放，歌詞自動跟隨（預設模式）</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-chalkboard-teacher help-icon"></i>
+                        <span>關閉自動播放模式：進入單句教學模式，點擊歌詞只播放單句，播完自動暫停</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-toggle-on help-icon"></i>
+                        <span>使用右上角的開關切換模式</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>歌詞控制</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-mouse-pointer help-icon"></i>
+                        <span>點擊任何歌詞行可跳轉到該位置</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-sync-alt help-icon"></i>
+                        <span>點擊歌詞前的循環按鈕可重複播放該句</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-sync-alt help-icon" style="color: #2196F3;"></i>
+                        <span>藍色圖標表示該句正在循環播放中</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>教學模式使用技巧</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-graduation-cap help-icon"></i>
+                        <span>適合逐句講解與練習</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-redo help-icon"></i>
+                        <span>可配合循環按鈕反覆練習困難句子</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-hand-point-up help-icon"></i>
+                        <span>點擊下一句繼續播放</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>自動播放模式使用技巧</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-music help-icon"></i>
+                        <span>適合完整聆聽歌曲</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-scroll help-icon"></i>
+                        <span>歌詞會自動捲動並高亮</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-random help-icon"></i>
+                        <span>可隨時點擊歌詞跳轉</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        let player;
+        let currentInterval;
+        let loopingIndex = -1;
+        let isLooping = false;
+        let isContinuousMode = true;
+
+        // 歌詞數據
+        let lyrics = [
+        { time: 0.9, text: `This lesson is specially created to boost all your English skills.` },
+    { time: 6.6, text: `It's divided into four engaging parts:` },
+    { time: 10.5, text: `No. 1 Comic Story` },
+    { time: 13.1, text: `No. 2 Listening Comprehension Quiz` },
+    { time: 16.8, text: `No. 3 Vocabulary Quiz` },
+    { time: 19.9, text: `No. 4 Level Assessment` },
+    { time: 22.7, text: `Which level are you? Let's get started!` },
+    { time: 28.3, text: `The Elephant and the River` },
+    { time: 34.0, text: `"I am the biggest and strongest animal in the jungle.` },
+    { time: 44.2, text: `I can do anything by myself!"` },
+    { time: 52.3, text: `Eli the Elephant was proud of his strength and size.` },
+    { time: 60.4, text: `He thought he didn't need help from anyone and liked doing everything on his own.` },
+    { time: 70.6, text: `One hot day, Eli saw some juicy, green leaves on the other side of the river.` },
+    { time: 80.0, text: `"I'll cross the river and eat those delicious leaves.` },
+    { time: 90.8, text: `It will be easy for someone as strong as me."` },
+    { time: 100.1, text: `He walked toward an old, narrow bridge over the rushing river.` },
+    { time: 109.4, text: `"Eli, wait!` },
+    { time: 111.3, text: `That bridge is weak and it might not hold you!"` },
+    { time: 118.3, text: `"Don't worry, Mia.` },
+    { time: 120.6, text: `I'm strong enough to cross it. I don't need help."` },
+    { time: 130.6, text: `Eli stepped onto the bridge.` },
+    { time: 133.0, text: `As he walked, it creaked loudly, but he kept going.` },
+    { time: 141.7, text: `Halfway across, the bridge started to crack.` },
+    { time: 148.9, text: `"What's happening? This bridge should hold me!"` },
+    { time: 157.8, text: `Before Eli could reach the other side, the bridge broke.` },
+    { time: 166.0, text: `He fell into the river below.` },
+    { time: 172.4, text: `"Help! The water is too strong—I can't swim!"` },
+    { time: 182.9, text: `The river carried Eli away, and Mia quickly jumped from her tree, following him.` },
+    { time: 197.3, text: `"Hold on, Eli! I'll get help!"` },
+    { time: 204.0, text: `Mia swung through the jungle and called out to her friends.` },
+    { time: 212.2, text: `"Fred! Rick! Come quickly!` },
+    { time: 218.9, text: `Eli is in trouble!"` },
+    { time: 224.4, text: `The friends worked together, finding vines and sticks to make a strong rope.` },
+    { time: 234.4, text: `"Eli, grab this with your trunk!"` },
+    { time: 242.9, text: `Eli caught the rope with his trunk, and his friends pulled as hard as they could until they safely got him to the riverbank.` },
+    { time: 260.8, text: `"Thank you!` },
+    { time: 264.6, text: `I didn't realize the river was so dangerous."` },
+    { time: 273.8, text: `"That's what friends are for— we're glad you're safe."` },
+    { time: 283.5, text: `Once Eli was back on land, he shook off the water and turned to his friends.` },
+    { time: 293.5, text: `"I thought I could do everything alone, but I was wrong."` },
+    { time: 304.5, text: `"Even the strongest animals need help sometimes, Eli."` },
+    { time: 313.4, text: `"You're right.` },
+    { time: 315.7, text: `From now on, I'll always accept help—and offer it too."` },
+    { time: 326.6, text: `From that day, Eli spent more time with his friends.` },
+    { time: 334.7, text: `One morning, the animals found a big log blocking their path.` },
+    { time: 343.9, text: `Uh... This log is too heavy for us to move."` },
+    { time: 353.8, text: `"Let me help!"` },
+    { time: 359.0, text: `With Eli's strength and his friends' support, they quickly cleared the path.` },
+    { time: 368.6, text: `See?` },
+    { time: 369.8, text: `"Teamwork makes everything easier!"` },
+    { time: 377.7, text: `"That's true - together, we can do so much more."` },
+    { time: 392.4, text: `The Elephant and the River - English Learning Quiz` },
+    { time: 397.5, text: `If you found the video helpful, please share it with others who might enjoy it.` },
+    { time: 402.9, text: `Don't forget to check out our StoryStudies YouTube channel, where you'll find Beginner (A1) and Pre-Intermediate (A2) English videos for new learners,` },
+    { time: 415.0, text: `Intermediate (B1) content to boost your confidence,` },
+    { time: 419.1, text: `and Upper-Intermediate (B2) lessons for fluent conversations.` },
+    { time: 424.9, text: `Let's test what you learned with 10 questions that will help you practice your English!` },
+    { time: 432.1, text: `Part 1: Vocabulary` },
+    { time: 436.7, text: `What does "proud" mean when Eli was "proud of his strength"?` },
+    { time: 443.3, text: `A) Feeling happy about yourself` },
+    { time: 447.2, text: `B) Feeling sad` },
+    { time: 450.1, text: `C) Feeling tired` },
+    { time: 452.8, text: `D) Feeling scared` },
+    { time: 455.9, text: `The correct answer...is A!` },
+    { time: 464.5, text: `When you're proud, you feel good about yourself or something you have.` },
+    { time: 472.1, text: `What does "determined" mean when Eli was "determined" to cross?` },
+    { time: 478.2, text: `A) Afraid to try` },
+    { time: 481.1, text: `B) Ready to sleep` },
+    { time: 484.6, text: `C) Too tired to move` },
+    { time: 487.9, text: `D) Really wanting to do something` },
+    { time: 497.0, text: `D is correct!` },
+    { time: 499.3, text: `When you're determined, you really want to do something.` },
+    { time: 505.7, text: `What does "dismissively" mean when Eli spoke "dismissively"?` },
+    { time: 513.0, text: `A) Kindly` },
+    { time: 515.7, text: `B) Happily` },
+    { time: 518.5, text: `C) Quietly` },
+    { time: 521.3, text: `D) Like something isn't important` },
+    { time: 530.4, text: `D is right!` },
+    { time: 532.6, text: `Speaking dismissively means acting like something isn't important.` },
+    { time: 538.8, text: `What does "panicking" mean when Eli was "panicking"?` },
+    { time: 544.1, text: `A) Being very scared` },
+    { time: 547.8, text: `B) Being very happy` },
+    { time: 551.6, text: `C) Being very tired` },
+    { time: 554.9, text: `D) Being very strong` },
+    { time: 563.3, text: `A is correct!` },
+    { time: 565.5, text: `When someone is panicking, they're very scared or worried.` },
+    { time: 571.9, text: `What does "humbly" mean when Eli spoke "humbly"?` },
+    { time: 577.4, text: `A) Loudly` },
+    { time: 580.3, text: `B) Angrily` },
+    { time: 582.9, text: `C) Not being proud` },
+    { time: 585.9, text: `D) Sleepily` },
+    { time: 593.5, text: `C is the right answer!` },
+    { time: 596.6, text: `Speaking humbly means not being proud or boastful.` },
+    { time: 602.2, text: `Part 2: Story Comprehension` },
+    { time: 607.5, text: `Why did Eli want to cross the river?` },
+    { time: 612.0, text: `A) To meet his friends` },
+    { time: 615.5, text: `B) To eat green leaves` },
+    { time: 619.7, text: `C) To take a swim` },
+    { time: 622.9, text: `D) To help others` },
+    { time: 630.9, text: `B is correct!` },
+    { time: 633.5, text: `Eli wanted to eat the juicy, green leaves on the other side.` },
+    { time: 640.6, text: `What happened when Eli tried to cross the bridge?` },
+    { time: 645.9, text: `A) The bridge broke` },
+    { time: 649.4, text: `B) He made it safely` },
+    { time: 653.4, text: `C) His friends stopped him` },
+    { time: 657.1, text: `D) He changed his mind` },
+    { time: 665.5, text: `The answer is A - the bridge broke while he was crossing.` },
+    { time: 673.7, text: `How did Eli's friends help him?` },
+    { time: 677.3, text: `A) They built a new bridge` },
+    { time: 681.9, text: `B) They called for help` },
+    { time: 685.6, text: `C) They jumped in the water` },
+    { time: 689.7, text: `D) They made a rope and pulled him out` },
+    { time: 699.7, text: `D is right!` },
+    { time: 701.7, text: `They made a rope from vines and sticks to pull him out.` },
+    { time: 708.2, text: `What did Eli learn from this experience?` },
+    { time: 713.1, text: `A) Never cross rivers` },
+    { time: 717.2, text: `B) Don't eat leaves` },
+    { time: 721.0, text: `C) Everyone needs help sometimes` },
+    { time: 725.8, text: `D) Bridges are dangerous` },
+    { time: 734.7, text: `If you picked C, you're right!` },
+    { time: 737.9, text: `Eli learned that everyone needs help sometimes.` },
+    { time: 743.6, text: `What did Eli do differently after being saved?` },
+    { time: 748.8, text: `A) He stayed away from the river` },
+    { time: 752.9, text: `B) He stopped eating leaves` },
+    { time: 757.2, text: `C) He spent more time with friends` },
+    { time: 762.1, text: `D) He built a new bridge` },
+    { time: 770.8, text: `C is correct! Eli spent more time with his friends after learning his lesson.` },
+    { time: 785.6, text: `Your Level Assessment` },
+    { time: 788.5, text: `Let's see how well you did!` },
+    { time: 791.4, text: `Count your correct answers:` },
+    { time: 795.1, text: `8-10 correct answers: A2 (Pre-Intermediate)` },
+    { time: 801.7, text: `5-7 correct answers: A1+ (Elementary)` },
+    { time: 808.5, text: `0-4 correct answers: A1 (Beginner)` },
+    { time: 813.5, text: `Keep practicing your English!` },
+    { time: 816.5, text: `Every story helps you learn more words and understand better.` },
+    { time: 822.0, text: `If you enjoyed this story about friendship and teamwork, you'll love our next adventure:` },
+    { time: 828.5, text: `"Fair or Not Fair?" - where James` },
+    { time: 831.8, text: `the Deer learns an important lesson about trust when he helps Phil the Tiger.` },
+    { time: 838.9, text: `Will his kindness be rewarded, or will he regret his decision?` },
+    { time: 844.8, text: `Find out in our next exciting story!` }
+        ];
+		// 載入YouTube API
+        function loadYouTubeAPI() {
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        // YouTube API 準備完成
+        function onYouTubeIframeAPIReady() {
+            createPlayer('shKeatO_Weo');
+            displayLyrics();
+        }
+
+        // 建立播放器
+        function createPlayer(videoId) {
+            player = new YT.Player('player', {
+                height: '360',
+                width: '640',
+                videoId: videoId,
+                playerVars: {
+                    modestbranding: 1,
+                    rel: 0
+                },
+                events: {
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
+                }
+            });
+        }
+
+        // 錯誤處理
+        function onPlayerError(event) {
+            console.error('Video player error:', event.data);
+        }
+
+        // 播放狀態改變
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING) {
+                if (isContinuousMode) {
+                    startTimeUpdate();
+                }
+            } else if (event.data === YT.PlayerState.ENDED) {
+                if (isLooping && loopingIndex !== -1) {
+                    seekTo(lyrics[loopingIndex].time);
+                }
+            } else {
+                stopTimeUpdate();
+            }
+        }
+
+        // 開始循環播放特定句子
+        function startLooping(index) {
+            if (loopingIndex === index) {
+                stopLooping();
+                return;
+            }
+            stopLooping();
+            loopingIndex = index;
+            isLooping = true;
+            updateLoopButtons();
+            seekTo(lyrics[index].time);
+        }
+
+        // 停止循環播放
+        function stopLooping() {
+            loopingIndex = -1;
+            isLooping = false;
+            updateLoopButtons();
+        }
+
+        // 更新循環按鈕狀態
+        function updateLoopButtons() {
+            const buttons = document.querySelectorAll('.loop-btn');
+            buttons.forEach((btn, index) => {
+                if (index === loopingIndex) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // 開始更新時間
+        function startTimeUpdate() {
+            clearInterval(currentInterval);
+            currentInterval = setInterval(() => {
+                const currentTime = player.getCurrentTime();
+                if (isLooping && loopingIndex !== -1) {
+                    const currentLine = lyrics[loopingIndex];
+                    const nextLine = lyrics[loopingIndex + 1];
+                    if (nextLine && currentTime >= nextLine.time) {
+                        seekTo(currentLine.time);
+                        return;
+                    }
+                }
+                updateActiveLyrics(currentTime);
+            }, 100);
+        }
+
+        // 停止更新時間
+        function stopTimeUpdate() {
+            if (currentInterval) {
+                clearInterval(currentInterval);
+                currentInterval = null;
+            }
+        }
+
+        // 更新當前歌詞
+        function updateActiveLyrics(currentTime) {
+            const lines = document.querySelectorAll('.lyrics-line');
+            lines.forEach((line, index) => {
+                const time = lyrics[index].time;
+                const nextTime = lyrics[index + 1]?.time || Infinity;
+                
+                if (currentTime >= time && currentTime < nextTime) {
+                    if (!line.classList.contains('active')) {
+                        line.classList.add('active');
+                        line.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center'
+                        });
+                    }
+                } else {
+                    line.classList.remove('active');
+                }
+            });
+        }
+
+        // 顯示歌詞
+        function displayLyrics() {
+            const lyricsDisplay = document.getElementById('lyricsDisplay');
+            lyricsDisplay.innerHTML = '';
+            
+            lyrics.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'lyrics-line';
+
+                const loopBtn = document.createElement('button');
+                loopBtn.className = 'loop-btn';
+                loopBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+                loopBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    startLooping(index);
+                };
+                div.appendChild(loopBtn);
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'lyrics-text';
+                textSpan.textContent = item.text;
+                textSpan.onclick = () => seekTo(item.time, index);
+                div.appendChild(textSpan);
+
+                lyricsDisplay.appendChild(div);
+            });
+        }
+
+        // 切換說明面板顯示狀態
+        function toggleHelp() {
+            const helpPanel = document.querySelector('.help-panel');
+            const backdrop = document.querySelector('.backdrop');
+            helpPanel.classList.toggle('show');
+            backdrop.classList.toggle('show');
+        }
+
+        // 點擊外部關閉說明面板
+        document.addEventListener('click', (e) => {
+            const helpPanel = document.querySelector('.help-panel');
+            const helpButton = document.querySelector('.help-button');
+            if (!helpPanel.contains(e.target) && !helpButton.contains(e.target)) {
+                helpPanel.classList.remove('show');
+                document.querySelector('.backdrop').classList.remove('show');
+            }
+        });
+
+        // 跳轉到指定時間
+        function seekTo(time, index) {
+            player.seekTo(time, true);
+            if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                player.playVideo();
+            }
+
+            if (!isContinuousMode && index !== undefined) {
+                const currentLine = lyrics[index];
+                const nextLine = lyrics[index + 1];
+                
+                // 清除之前的計時器
+                if (window.pauseTimer) {
+                    clearTimeout(window.pauseTimer);
+                }
+
+                // 設置新的暫停計時器
+                window.pauseTimer = setTimeout(() => {
+                    if (!isContinuousMode) {
+                        const currentTime = player.getCurrentTime();
+                        const targetTime = nextLine ? nextLine.time : (currentLine.time + 5);
+                        
+                        if (currentTime >= targetTime) {
+                            player.pauseVideo();
+                        } else {
+                            const remainingTime = (targetTime - currentTime) * 1000;
+                            setTimeout(() => player.pauseVideo(), remainingTime);
+                        }
+                    }
+                }, (nextLine ? nextLine.time - time : 5) * 1000);
+            }
+        }
+
+        // 在模式切換時也要處理計時器
+        document.getElementById('modeToggle').addEventListener('change', function(e) {
+            isContinuousMode = e.target.checked;
+            
+            if (window.pauseTimer) {
+                clearTimeout(window.pauseTimer);
+            }
+            
+            if (!isContinuousMode && player && player.pauseVideo) {
+                player.pauseVideo();
+            }
+        });
+
+        // 初始化
+        loadYouTubeAPI();
+    </script>
+
+
+
+		</body>
+		</html>

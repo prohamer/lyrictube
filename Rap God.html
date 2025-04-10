@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+		<html>
+		<head>
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lyrics Player</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background: #000;  /* 原本是 #f9f9f9 */
+			color: #fff;      /* 加入這行確保文字顏色 */
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+        }
+        .video-container {
+            flex: 2;
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            background: #000;
+        }
+		/* 手機版樣式 */
+        @media (max-width: 768px) {
+          .video-container {
+                position: sticky;
+                top: 60px;  /* 加大這個值，配合 Google Sites 的標題列高度 */
+                z-index: 100;
+                margin-bottom: 10px;
+                /* 可能需要額外的 margin-top */
+                margin-top: 60px;  /* 加入這行，確保初始位置也正確 */
+            }
+
+            body {
+               /* 確保有足夠的頂部空間 */
+                 padding-top: 60px;
+            }
+			
+            .container {
+                flex-direction: column;
+                padding-top: 0;
+            }
+        }
+		
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .lyrics-container {
+            flex: 1;
+            height: calc(100vh - 40px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #1a1a1a;  /* 原本是 white */
+			color: #fff;         /* 加入這行 */
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .lyrics-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: #2d2d2d;  /* 原本是 #f0f0f0 */
+			border-bottom: 1px solid #333;  /* 原本是 #ddd */
+            border-bottom: 1px solid #ddd;
+        }
+        .title {
+            font-weight: bold;
+        }
+        .mode-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .mode-label {
+            font-size: 0.9em;
+            color: #ccc;  /* 原本是 #666 */
+        }
+        #lyricsDisplay {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .lyrics-line {
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+			color: #ccc;  /* 加入這行 */
+        }
+        .lyrics-line:hover {
+            background-color: #333;  /* 原本是 #f0f0f0 */
+        }
+        .lyrics-line.active {
+            background-color: #2196F3;  /* 可以保留藍色或改成 #1a1a1a */
+			color: #fff;  /* 加入這行 */
+            font-weight: bold;
+        }
+        .loop-btn {
+            padding: 5px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.2s;
+            color: #c79ac5;  /* 原本是 #666 */
+        }
+        .loop-btn:hover {
+            opacity: 1;
+        }
+        .loop-btn.active {
+            color: #ec21f3;
+            opacity: 1;
+        }
+        .lyrics-text {
+            flex: 1;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .lyrics-container {
+                height: 50vh;
+            }
+        }
+        /* 說明按鈕樣式 */
+        .help-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+		.help-button:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+        /* 說明面板樣式 */
+        .help-panel {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            transition: bottom 0.3s ease;
+            z-index: 999;
+            max-height: 80vh;
+            overflow-y: auto;
+			color: #000;
+        }
+        .help-panel.show {
+            bottom: 0;
+        }
+        .help-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .help-section {
+            margin-bottom: 20px;
+        }
+        .help-section h3 {
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        .help-list {
+            list-style: none;
+            padding: 0;
+        }
+        .help-list li {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .help-icon {
+            color: #666;
+            width: 24px;
+            text-align: center;
+        }
+        .close-help {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 998;
+        }
+        .backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        @media (max-width: 768px) {
+            .help-panel {
+                max-height: 70vh;
+            }
+        }
+    </style>
+
+
+    <div class="container">
+        <div class="video-container">
+            <div id="player"></div>
+        </div>
+        <div class="lyrics-container">
+            <div class="lyrics-header">
+                <div class="title">字幕同步播放器</div>
+                <div class="mode-switch">
+                    <span class="mode-label">自動播放模式</span>
+                    <label class="switch">
+                        <input type="checkbox" id="modeToggle" checked="">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div id="lyricsDisplay"></div>
+        </div>
+    </div>
+    <!-- 說明按鈕 -->
+    <button class="help-button" onclick="toggleHelp()">
+        <i class="fas fa-question-circle"></i>
+        使用說明
+    </button>
+    <!-- 背景遮罩 -->
+    <div class="backdrop" onclick="toggleHelp()"></div>
+    <!-- 說明面板 -->
+    <div class="help-panel">
+        <button class="close-help" onclick="toggleHelp()">×</button>
+        <div class="help-content">
+		<div class="help-section">
+                <h3>播放模式</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-play-circle help-icon"></i>
+                        <span>自動播放模式：影片會連續播放，歌詞自動跟隨（預設模式）</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-chalkboard-teacher help-icon"></i>
+                        <span>關閉自動播放模式：進入單句教學模式，點擊歌詞只播放單句，播完自動暫停</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-toggle-on help-icon"></i>
+                        <span>使用右上角的開關切換模式</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>歌詞控制</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-mouse-pointer help-icon"></i>
+                        <span>點擊任何歌詞行可跳轉到該位置</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-sync-alt help-icon"></i>
+                        <span>點擊歌詞前的循環按鈕可重複播放該句</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-sync-alt help-icon" style="color: #2196F3;"></i>
+                        <span>藍色圖標表示該句正在循環播放中</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>教學模式使用技巧</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-graduation-cap help-icon"></i>
+                        <span>適合逐句講解與練習</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-redo help-icon"></i>
+                        <span>可配合循環按鈕反覆練習困難句子</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-hand-point-up help-icon"></i>
+                        <span>點擊下一句繼續播放</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>自動播放模式使用技巧</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-music help-icon"></i>
+                        <span>適合完整聆聽歌曲</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-scroll help-icon"></i>
+                        <span>歌詞會自動捲動並高亮</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-random help-icon"></i>
+                        <span>可隨時點擊歌詞跳轉</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        let player;
+        let currentInterval;
+        let loopingIndex = -1;
+        let isLooping = false;
+        let isContinuousMode = true;
+
+        // 歌詞數據
+        let lyrics = [
+        { time: 0.7, text: `("Rap God" by Eminem)` },
+    { time: 1.3, text: `♪ Look ♪` },
+    { time: 2.3, text: `♪ I was gonna go easy on you ♪` },
+    { time: 3.5, text: `♪ And not to hurt your feelings ♪` },
+    { time: 4.9, text: `♪ But I'm only going to get this one chance ♪` },
+    { time: 8.7, text: `♪ Six minutes ♪` },
+    { time: 9.9, text: `♪ Something's wrong, I can feel it ♪` },
+    { time: 11.2, text: `♪ Six minutes, Slim Shady, you're on ♪` },
+    { time: 12.5, text: `♪ Just a feeling I've got ♪` },
+    { time: 14.1, text: `♪ Like something's about to happen ♪` },
+    { time: 16.5, text: `♪ But I don't know what ♪` },
+    { time: 18.2, text: `♪ If that means what I think it means ♪` },
+    { time: 19.5, text: `♪ We're in trouble, big trouble ♪` },
+    { time: 21.3, text: `♪ And if he is as bananas as you say ♪` },
+    { time: 23.1, text: `♪ I'm not taking any chances ♪` },
+    { time: 24.6, text: `♪ You were just what the doc ordered ♪` },
+    { time: 26.1, text: `♪ I'm beginnin' to feel like a Rap God, Rap God ♪` },
+    { time: 29.1, text: `♪ All my people from the front to the back nod, back nod ♪` },
+    { time: 32.4, text: `♪ Now who thinks their arms are long enough ♪` },
+    { time: 33.9, text: `♪ To slap box, slap box? ♪` },
+    { time: 35.5, text: `♪ They said I rap like a robot, so call me Rapbot ♪` },
+    { time: 38.2, text: `♪ But for me to rap like a computer must be in my genes ♪` },
+    { time: 40.3, text: `♪ I got a laptop in my back pocket ♪` },
+    { time: 42.1, text: `♪ My pen'll go off when I half-cock it ♪` },
+    { time: 43.7, text: `♪ Got a fat knot from that rap profit ♪` },
+    { time: 45.3, text: `♪ Made a living and a killing off it ♪` },
+    { time: 46.8, text: `♪ Ever since Bill Clinton was still in office ♪` },
+    { time: 48.3, text: `♪ With Monica Lewinsky feeling on his nut-sack ♪` },
+    { time: 50.2, text: `♪ I'm an MC still as honest ♪` },
+    { time: 51.8, text: `♪ But as rude and indecent as all hell syllables ♪` },
+    { time: 53.5, text: `♪ Killaholic ♪` },
+    { time: 54.4, text: `♪ Kill 'em all with ♪` },
+    { time: 55.8, text: `♪ This slickety, gibbedy, hibbedy hip hop ♪` },
+    { time: 57.4, text: `♪ You don't really wanna get into a pissing match ♪` },
+    { time: 58.4, text: `♪ With this rappidy brat ♪` },
+    { time: 59.8, text: `♪ Packing a Mac in the back of the Ac ♪` },
+    { time: 61.1, text: `♪ Backpack rap crap, yap-yap, yackety-yac ♪` },
+    { time: 62.3, text: `♪ And at the exact same time, I attempt these ♪` },
+    { time: 63.8, text: `♪ Lyrical acrobat stunts while I'm practicin' that ♪` },
+    { time: 65.3, text: `♪ I'll still be able to break a motherfuckin' table ♪` },
+    { time: 66.6, text: `♪ Over the back of a couple of faggots ♪` },
+    { time: 67.4, text: `♪ And crack it in half ♪` },
+    { time: 68.9, text: `♪ Only realized it was ironic, I was signed to ♪` },
+    { time: 70.0, text: `♪ Aftermath after the fact ♪` },
+    { time: 71.6, text: `♪ How could I not blow? ♪` },
+    { time: 73.1, text: `♪ All I do is drop F-bombs, feel my wrath of attack ♪` },
+    { time: 74.6, text: `♪ Rappers are havin' a rough time period, here's a maxipad ♪` },
+    { time: 76.8, text: `♪ It's actually disastrously bad for the wack ♪` },
+    { time: 79.1, text: `♪ While I'm masterfully constructing this masterpiece as ♪` },
+    { time: 81.1, text: `♪ 'Cause I'm beginnin' to feel like a Rap God, Rap God ♪` },
+    { time: 84.3, text: `♪ All my people from the front to the back nod, back nod ♪` },
+    { time: 87.5, text: `♪ Now who thinks their arms are long enough ♪` },
+    { time: 89.0, text: `♪ To slap box, slap box? ♪` },
+    { time: 90.7, text: `♪ Let me show you maintainin' this shit ♪` },
+    { time: 92.3, text: `♪ Ain't that hard, that hard ♪` },
+    { time: 94.0, text: `♪ Everybody wants the key and the secret ♪` },
+    { time: 95.3, text: `♪ To rap immortality like I have got ♪` },
+    { time: 97.2, text: `♪ Well, to be truthful the blueprint's ♪` },
+    { time: 98.4, text: `♪ Simply rage and youthful exuberance ♪` },
+    { time: 99.9, text: `♪ Everybody loves to root for a nuisance ♪` },
+    { time: 101.4, text: `♪ Hit the earth like an asteroid ♪` },
+    { time: 102.7, text: `♪ Did nothing but shoot for the moon since ♪` },
+    { time: 104.0, text: `♪ Pew! ♪` },
+    { time: 105.3, text: `♪ MCs get taken to school with this music ♪` },
+    { time: 106.8, text: `♪ 'Cause I use it as a vehicle to "bus the rhyme" ♪` },
+    { time: 108.3, text: `♪ Now I lead a new school full of students ♪` },
+    { time: 110.0, text: `♪ Me? I'm a product of Rakim, Lakim Shabazz, 2Pac ♪` },
+    { time: 112.7, text: `♪ N.W.A., Cube, hey Doc, Ren, Yella, Eazy, thank you ♪` },
+    { time: 115.5, text: `♪ They got Slim inspired enough to one day grow up ♪` },
+    { time: 117.8, text: `♪ Blow up and be in a position ♪` },
+    { time: 119.4, text: `♪ To meet Run-DMC and induct them into the ♪` },
+    { time: 121.3, text: `♪ Motherfuckin' Rock and Roll Hall of Fame ♪` },
+    { time: 123.6, text: `♪ Even though I'll walk in the church ♪` },
+    { time: 124.8, text: `♪ And burst in a ball of flames ♪` },
+    { time: 126.0, text: `♪ Only Hall of Fame I'll be inducted in ♪` },
+    { time: 127.5, text: `♪ Is the alcohol of fame ♪` },
+    { time: 128.8, text: `♪ On the wall of shame ♪` },
+    { time: 130.0, text: `♪ You fags think it's all a game ♪` },
+    { time: 131.3, text: `♪ 'Til I walk a flock of flames ♪` },
+    { time: 133.4, text: `♪ Off of a plank and ♪` },
+    { time: 134.6, text: `♪ Tell me what in the fuck are you thinkin'? ♪` },
+    { time: 136.1, text: `♪ Little gay-lookin' boy ♪` },
+    { time: 137.1, text: `♪ So gay I can barely say it ♪` },
+    { time: 138.4, text: `♪ With a straight face, lookin' boy (Ha!) ♪` },
+    { time: 139.5, text: `♪ You witnessing a mass-occur) ♪` },
+    { time: 140.8, text: `♪ Like you're watching a church gathering ♪` },
+    { time: 141.8, text: `♪ Take place, lookin' boy ♪` },
+    { time: 143.2, text: `♪ "Oy vey, that boy's gay!" ♪` },
+    { time: 144.7, text: `♪ That's all they say, lookin' boy ♪` },
+    { time: 146.0, text: `♪ You get a thumbs up, pat on the back ♪` },
+    { time: 147.6, text: `♪ And a "way to go" from your label everyday, lookin' boy ♪` },
+    { time: 149.4, text: `♪ Hey, lookin' boy! What you say, lookin' boy? ♪` },
+    { time: 150.7, text: `♪ I got a "hell yeah" from Dre, lookin' boy ♪` },
+    { time: 152.4, text: `♪ I'ma work for everything I have ♪` },
+    { time: 153.8, text: `♪ Never asked nobody for shit ♪` },
+    { time: 155.0, text: `♪ Get outta my face, lookin' boy ♪` },
+    { time: 156.3, text: `♪ Basically, boy, you're never gonna be capable ♪` },
+    { time: 157.6, text: `♪ Or keepin' up with the same pace, lookin' boy ♪` },
+    { time: 159.1, text: `♪ 'Cause I'm beginnin' to feel like a Rap God, Rap God ♪` },
+    { time: 162.2, text: `♪ All my people from the front to the back nod, back nod ♪` },
+    { time: 165.4, text: `♪ The way I'm racin' around the track ♪` },
+    { time: 166.7, text: `♪ Call me NASCAR, NASCAR ♪` },
+    { time: 168.6, text: `♪ Dale Earnhardt of the trailer park, the White Trash God ♪` },
+    { time: 171.2, text: `♪ Kneel before General Zod ♪` },
+    { time: 172.5, text: `♪ This planet's Krypton ♪` },
+    { time: 173.4, text: `♪ No, Asgard, Asgard ♪` },
+    { time: 175.2, text: `♪ So you be Thor and I'll be Odin ♪` },
+    { time: 177.1, text: `♪ You rodent, I'm omnipotent ♪` },
+    { time: 178.8, text: `♪ Let off then I'm reloadin' ♪` },
+    { time: 180.3, text: `♪ Immediately with these bombs I'm totin' ♪` },
+    { time: 181.7, text: `♪ And I should not be woken ♪` },
+    { time: 183.5, text: `♪ I'm the walking' dead, but I'm just a talkin' head ♪` },
+    { time: 185.5, text: `♪ A zombie floatin' ♪` },
+    { time: 186.8, text: `♪ But I got your mom deep-throatin' ♪` },
+    { time: 188.5, text: `♪ I'm out my Ramen noodle ♪` },
+    { time: 189.9, text: `♪ We have nothin' in common, poodle ♪` },
+    { time: 191.0, text: `♪ Poodle, I'm a doberman ♪` },
+    { time: 192.5, text: `♪ Pinch yourself in the arm and pay homage, pupil ♪` },
+    { time: 194.8, text: `♪ It's me, my honesty's brutal ♪` },
+    { time: 197.4, text: `♪ But it's honestly futile ♪` },
+    { time: 198.7, text: `♪ If I don't utilize what I do though ♪` },
+    { time: 200.4, text: `♪ For good at least once in a while ♪` },
+    { time: 201.7, text: `♪ So I wanna make sure somewhere in this ♪` },
+    { time: 203.2, text: `♪ Chicken scratch I scribble and doodle enough rhymes to ♪` },
+    { time: 205.3, text: `♪ Maybe to try to help get some people through tough times ♪` },
+    { time: 207.5, text: `♪ But I gotta keep a few punchlines just in case ♪` },
+    { time: 209.7, text: `♪ 'Cause even you unsigned ♪` },
+    { time: 211.2, text: `♪ Rappers are hungry lookin' at me like it's lunchtime ♪` },
+    { time: 213.0, text: `♪ I know there was a time where once I ♪` },
+    { time: 214.8, text: `♪ Was king of the underground ♪` },
+    { time: 216.4, text: `♪ But I still rap like I'm on my Pharoahe Monch grind ♪` },
+    { time: 218.0, text: `♪ So I crunch rhymes, but sometimes when you combine ♪` },
+    { time: 220.3, text: `♪ Appeal with the skin color of mine ♪` },
+    { time: 221.9, text: `♪ You get too big and here they come tryin' to ♪` },
+    { time: 223.9, text: `♪ Censor you like that one line ♪` },
+    { time: 225.4, text: `♪ I said on "I'm Back" from the Mathers LP1 when I ♪` },
+    { time: 227.7, text: `♪ Tried to say I'll take seven kids from Columbine ♪` },
+    { time: 230.5, text: `♪ Put 'em all in a line, add an AK-47, a revolver and a 9 ♪` },
+    { time: 233.7, text: `♪ See if I get away with it ♪` },
+    { time: 235.0, text: `♪ Now that I ain't as big as I was, but I'm ♪` },
+    { time: 236.7, text: `♪ Morphin' into an immortal, comin' through the portal ♪` },
+    { time: 239.8, text: `♪ You're stuck in a time warp from 2004 though ♪` },
+    { time: 241.9, text: `♪ And I don't know what the fuck that you rhyme for ♪` },
+    { time: 244.1, text: `♪ You're pointless as Rapunzel with fuckin' cornrows ♪` },
+    { time: 246.6, text: `♪ You write normal? Fuck being normal ♪` },
+    { time: 248.6, text: `♪ And I just bought a new raygun from the future ♪` },
+    { time: 250.2, text: `♪ Just to come and shoot ya ♪` },
+    { time: 251.5, text: `♪ Like when Fabolous made Ray J mad ♪` },
+    { time: 253.1, text: `♪ 'Cause Fab said he looked like a fag at Mayweather's pad ♪` },
+    { time: 254.9, text: `♪ Singin' to a man while he played piano ♪` },
+    { time: 256.4, text: `♪ Man, oh man, that was a 24/7 special ♪` },
+    { time: 258.5, text: `♪ On the cable channel ♪` },
+    { time: 259.8, text: `♪ So Ray J went straight to the radio station ♪` },
+    { time: 261.3, text: `♪ The very next day ♪` },
+    { time: 262.3, text: `♪ "Hey, Fab, I'ma kill you!" ♪` },
+    { time: 263.6, text: `♪ Lyrics comin' at you at supersonic speed ♪` },
+    { time: 265.2, text: `♪ J.J. Fad ♪` },
+    { time: 266.6, text: `♪ Uh, summa-lumma, dooma-lumma, you assumin' I'm a human ♪` },
+    { time: 268.1, text: `♪ What I gotta do to get it through to you I'm superhuman ♪` },
+    { time: 269.4, text: `♪ Innovative and I'm made of rubber ♪` },
+    { time: 270.7, text: `♪ So that anything you say is ricochetin' ♪` },
+    { time: 271.9, text: `♪ Off of me and it'll glue to you and ♪` },
+    { time: 273.4, text: `♪ I'm devastating, more than ever demonstrating ♪` },
+    { time: 274.5, text: `♪ How to give a motherfuckin' audience ♪` },
+    { time: 276.0, text: `♪ A feeling like it's levitating, never fading ♪` },
+    { time: 277.5, text: `♪ And I know that the haters are forever waiting ♪` },
+    { time: 278.7, text: `♪ For the day that they can say I fell off ♪` },
+    { time: 279.7, text: `♪ They'll be celebrating ♪` },
+    { time: 281.0, text: `♪ 'Cause I know the way to get 'em motivated ♪` },
+    { time: 282.5, text: `♪ I make elevating music, you make elevator music ♪` },
+    { time: 283.5, text: `♪ "Oh, he's too mainstream." ♪` },
+    { time: 285.1, text: `♪ Well, that's what they do when they get jealous ♪` },
+    { time: 285.9, text: `♪ They confuse it ♪` },
+    { time: 286.9, text: `♪ "It's not hip hop, it's pop" ♪` },
+    { time: 288.1, text: `♪ 'Cause I found a hella way to fuse it ♪` },
+    { time: 289.4, text: `♪ With rock, shock rap with Doc ♪` },
+    { time: 290.7, text: `♪ Throw on Lose Yourself and make 'em lose it ♪` },
+    { time: 292.3, text: `♪ "I don't know how to make songs like that" ♪` },
+    { time: 293.7, text: `♪ "I don't know what words to use" ♪` },
+    { time: 295.3, text: `♪ Let me know when it occurs to you ♪` },
+    { time: 296.5, text: `♪ While I'm rippin' any one of these verses ♪` },
+    { time: 297.6, text: `♪ That verses you ♪` },
+    { time: 299.0, text: `♪ It's curtains, I'm inadvertently hurtin' you ♪` },
+    { time: 300.2, text: `♪ How many verses I gotta murder to ♪` },
+    { time: 301.5, text: `♪ Prove that if you were half as nice ♪` },
+    { time: 303.0, text: `♪ Your songs you could sacrifice virgins too?! ♪` },
+    { time: 304.7, text: `♪ Ugh, school flunkie, pill junkie ♪` },
+    { time: 307.1, text: `♪ But look at the accolades these skills brung me ♪` },
+    { time: 309.6, text: `♪ Full of myself, but still hungry ♪` },
+    { time: 311.6, text: `♪ I bully myself 'cause I make me do what I put my mind to ♪` },
+    { time: 314.2, text: `♪ And I'm a million leagues above you ♪` },
+    { time: 316.7, text: `♪ Ill when I speak in tongues ♪` },
+    { time: 318.2, text: `♪ But it's still tongue-in-cheek, fuck you ♪` },
+    { time: 319.8, text: `♪ I'm drunk, so Satan, take the fucking wheel ♪` },
+    { time: 322.0, text: `♪ I'ma sleep in the front seat ♪` },
+    { time: 323.5, text: `♪ Bumpin' Heavy D and the Boyz, still "Chunky, but funky" ♪` },
+    { time: 326.3, text: `♪ But in my head there's something ♪` },
+    { time: 327.6, text: `♪ I can feel tugging and struggling ♪` },
+    { time: 329.6, text: `♪ Angels fight with devils and ♪` },
+    { time: 331.1, text: `♪ Here's what they want from me ♪` },
+    { time: 333.3, text: `♪ They're askin' me to eliminate some of the women hate ♪` },
+    { time: 335.1, text: `♪ But if you take into consideration ♪` },
+    { time: 336.4, text: `♪ The bitter hatred I have ♪` },
+    { time: 337.7, text: `♪ Then you may be a little patient ♪` },
+    { time: 339.0, text: `♪ And more sympathetic to the situation ♪` },
+    { time: 340.2, text: `♪ And understand the discrimination ♪` },
+    { time: 342.1, text: `♪ But fuck it, life's handin' you lemons? ♪` },
+    { time: 343.9, text: `♪ Make lemonade then! ♪` },
+    { time: 345.2, text: `♪ But if I can't batter the women ♪` },
+    { time: 346.8, text: `♪ How the fuck am I supposed to bake them a cake then?! ♪` },
+    { time: 348.5, text: `♪ Don't mistake him for Satan ♪` },
+    { time: 350.1, text: `♪ It's a fatal mistake if you think I need to be overseas ♪` },
+    { time: 351.8, text: `♪ And take a vacation to trip a broad ♪` },
+    { time: 353.8, text: `♪ And make her fall on her face and ♪` },
+    { time: 355.2, text: `♪ Don't be a retard ♪` },
+    { time: 356.3, text: `♪ Be a king? Think not ♪` },
+    { time: 358.0, text: `♪ Why be a king when you can be a God? ♪` }
+        ];
+		// 載入YouTube API
+        function loadYouTubeAPI() {
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        // YouTube API 準備完成
+        function onYouTubeIframeAPIReady() {
+            createPlayer('XbGs_qK2PQA');
+            displayLyrics();
+        }
+
+        // 建立播放器
+        function createPlayer(videoId) {
+            player = new YT.Player('player', {
+                height: '360',
+                width: '640',
+                videoId: videoId,
+                playerVars: {
+                    modestbranding: 1,
+                    rel: 0
+                },
+                events: {
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
+                }
+            });
+        }
+
+        // 錯誤處理
+        function onPlayerError(event) {
+            console.error('Video player error:', event.data);
+        }
+
+        // 播放狀態改變
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING) {
+                if (isContinuousMode) {
+                    startTimeUpdate();
+                }
+            } else if (event.data === YT.PlayerState.ENDED) {
+                if (isLooping && loopingIndex !== -1) {
+                    seekTo(lyrics[loopingIndex].time);
+                }
+            } else {
+                stopTimeUpdate();
+            }
+        }
+
+        // 開始循環播放特定句子
+        function startLooping(index) {
+            if (loopingIndex === index) {
+                stopLooping();
+                return;
+            }
+            stopLooping();
+            loopingIndex = index;
+            isLooping = true;
+            updateLoopButtons();
+            seekTo(lyrics[index].time);
+        }
+
+        // 停止循環播放
+        function stopLooping() {
+            loopingIndex = -1;
+            isLooping = false;
+            updateLoopButtons();
+        }
+
+        // 更新循環按鈕狀態
+        function updateLoopButtons() {
+            const buttons = document.querySelectorAll('.loop-btn');
+            buttons.forEach((btn, index) => {
+                if (index === loopingIndex) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // 開始更新時間
+        function startTimeUpdate() {
+            clearInterval(currentInterval);
+            currentInterval = setInterval(() => {
+                const currentTime = player.getCurrentTime();
+                if (isLooping && loopingIndex !== -1) {
+                    const currentLine = lyrics[loopingIndex];
+                    const nextLine = lyrics[loopingIndex + 1];
+                    if (nextLine && currentTime >= nextLine.time) {
+                        seekTo(currentLine.time);
+                        return;
+                    }
+                }
+                updateActiveLyrics(currentTime);
+            }, 100);
+        }
+
+        // 停止更新時間
+        function stopTimeUpdate() {
+            if (currentInterval) {
+                clearInterval(currentInterval);
+                currentInterval = null;
+            }
+        }
+
+        // 更新當前歌詞
+        function updateActiveLyrics(currentTime) {
+            const lines = document.querySelectorAll('.lyrics-line');
+            lines.forEach((line, index) => {
+                const time = lyrics[index].time;
+                const nextTime = lyrics[index + 1]?.time || Infinity;
+                
+                if (currentTime >= time && currentTime < nextTime) {
+                    if (!line.classList.contains('active')) {
+                        line.classList.add('active');
+                        line.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center'
+                        });
+                    }
+                } else {
+                    line.classList.remove('active');
+                }
+            });
+        }
+
+        // 顯示歌詞
+        function displayLyrics() {
+            const lyricsDisplay = document.getElementById('lyricsDisplay');
+            lyricsDisplay.innerHTML = '';
+            
+            lyrics.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'lyrics-line';
+
+                const loopBtn = document.createElement('button');
+                loopBtn.className = 'loop-btn';
+                loopBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+                loopBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    startLooping(index);
+                };
+                div.appendChild(loopBtn);
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'lyrics-text';
+                textSpan.textContent = item.text;
+                textSpan.onclick = () => seekTo(item.time, index);
+                div.appendChild(textSpan);
+
+                lyricsDisplay.appendChild(div);
+            });
+        }
+
+        // 切換說明面板顯示狀態
+        function toggleHelp() {
+            const helpPanel = document.querySelector('.help-panel');
+            const backdrop = document.querySelector('.backdrop');
+            helpPanel.classList.toggle('show');
+            backdrop.classList.toggle('show');
+        }
+
+        // 點擊外部關閉說明面板
+        document.addEventListener('click', (e) => {
+            const helpPanel = document.querySelector('.help-panel');
+            const helpButton = document.querySelector('.help-button');
+            if (!helpPanel.contains(e.target) && !helpButton.contains(e.target)) {
+                helpPanel.classList.remove('show');
+                document.querySelector('.backdrop').classList.remove('show');
+            }
+        });
+
+        // 跳轉到指定時間
+        function seekTo(time, index) {
+            player.seekTo(time, true);
+            if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                player.playVideo();
+            }
+
+            if (!isContinuousMode && index !== undefined) {
+                const currentLine = lyrics[index];
+                const nextLine = lyrics[index + 1];
+                
+                // 清除之前的計時器
+                if (window.pauseTimer) {
+                    clearTimeout(window.pauseTimer);
+                }
+
+                // 設置新的暫停計時器
+                window.pauseTimer = setTimeout(() => {
+                    if (!isContinuousMode) {
+                        const currentTime = player.getCurrentTime();
+                        const targetTime = nextLine ? nextLine.time : (currentLine.time + 5);
+                        
+                        if (currentTime >= targetTime) {
+                            player.pauseVideo();
+                        } else {
+                            const remainingTime = (targetTime - currentTime) * 1000;
+                            setTimeout(() => player.pauseVideo(), remainingTime);
+                        }
+                    }
+                }, (nextLine ? nextLine.time - time : 5) * 1000);
+            }
+        }
+
+        // 在模式切換時也要處理計時器
+        document.getElementById('modeToggle').addEventListener('change', function(e) {
+            isContinuousMode = e.target.checked;
+            
+            if (window.pauseTimer) {
+                clearTimeout(window.pauseTimer);
+            }
+            
+            if (!isContinuousMode && player && player.pauseVideo) {
+                player.pauseVideo();
+            }
+        });
+
+        // 初始化
+        loadYouTubeAPI();
+    </script>
+
+
+
+		</body>
+		</html>

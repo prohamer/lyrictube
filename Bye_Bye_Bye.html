@@ -12,8 +12,8 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 10px;
-            background: #000;  
-            color: #fff;      
+            background: #000;  /* 原本是 #f9f9f9 */
+			color: #fff;      /* 加入這行確保文字顏色 */
         }
         .container {
             max-width: 1200px;
@@ -28,19 +28,19 @@
             height: 0;
             background: #000;
         }
-		
+		/* 手機版樣式 */
         @media (max-width: 768px) {
           .video-container {
                 position: sticky;
-                top: 60px;  
+                top: 60px;  /* 加大這個值，配合 Google Sites 的標題列高度 */
                 z-index: 100;
                 margin-bottom: 10px;
-                
-                margin-top: 60px;  
+                /* 可能需要額外的 margin-top */
+                margin-top: 60px;  /* 加入這行，確保初始位置也正確 */
             }
 
             body {
-              
+               /* 確保有足夠的頂部空間 */
                  padding-top: 60px;
             }
 			
@@ -63,8 +63,8 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            background: #1a1a1a;  
-			color: #fff;         
+            background: #1a1a1a;  /* 原本是 white */
+			color: #fff;         /* 加入這行 */
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
@@ -73,8 +73,8 @@
             align-items: center;
             justify-content: space-between;
             padding: 10px 15px;
-            background: #2d2d2d;  
-            border-bottom: 1px solid #333;  
+            background: #2d2d2d;  /* 原本是 #f0f0f0 */
+			border-bottom: 1px solid #333;  /* 原本是 #ddd */
             border-bottom: 1px solid #ddd;
         }
         .title {
@@ -126,7 +126,7 @@
         }
         .mode-label {
             font-size: 0.9em;
-            color: #ccc;  
+            color: #ccc;  /* 原本是 #666 */
         }
         #lyricsDisplay {
             flex: 1;
@@ -143,14 +143,14 @@
             display: flex;
             align-items: center;
             gap: 10px;
-			color: #ccc;  
+			color: #ccc;  /* 加入這行 */
         }
         .lyrics-line:hover {
-            background-color: #333;  
+            background-color: #333;  /* 原本是 #f0f0f0 */
         }
         .lyrics-line.active {
-            background-color: #2196F3;  
-            color: #fff;  
+            background-color: #2196F3;  /* 可以保留藍色或改成 #1a1a1a */
+			color: #fff;  /* 加入這行 */
             font-weight: bold;
         }
         .loop-btn {
@@ -160,7 +160,7 @@
             cursor: pointer;
             opacity: 0.5;
             transition: all 0.2s;
-            color: #c79ac5;  
+            color: #c79ac5;  /* 原本是 #666 */
         }
         .loop-btn:hover {
             opacity: 1;
@@ -215,7 +215,7 @@
             z-index: 999;
             max-height: 80vh;
             overflow-y: auto;
-            color: #000;
+			color: #000;
         }
         .help-panel.show {
             bottom: 0;
@@ -388,91 +388,91 @@
 
         // 歌詞數據
         let lyrics = [
-        { time: 0.0, text: `(intro beaming)` },
-    { time: 3.2, text: `(creepy music)` },
-    { time: 12.9, text: `(gentle music)` },
-    { time: 20.4, text: `♪ Hey, hey ♪` },
-    { time: 22.9, text: `♪ Bye bye bye ♪` },
-    { time: 24.0, text: `♪ Bye bye ♪` },
-    { time: 24.8, text: `(upbeat music)` },
-    { time: 29.3, text: `♪ Bye bye ♪` },
-    { time: 33.3, text: `♪ Oh, oh ♪` },
-    { time: 35.8, text: `♪ I'm doing this tonight ♪` },
-    { time: 38.7, text: `♪ You're probably gonna start a fight ♪` },
-    { time: 41.5, text: `♪ I know this can't be right ♪` },
-    { time: 44.1, text: `♪ Hey, baby, come on ♪` },
-    { time: 47.0, text: `♪ I loved you endlessly ♪` },
-    { time: 49.8, text: `♪ When you weren't there for me ♪` },
-    { time: 52.6, text: `♪ So now it's time to leave and make it alone ♪` },
-    { time: 58.1, text: `♪ I know that I can't take no more ♪` },
-    { time: 61.4, text: `♪ It ain't no lie ♪` },
-    { time: 63.7, text: `♪ I wanna see you out that door ♪` },
-    { time: 66.8, text: `♪ Baby, bye bye bye ♪` },
-    { time: 68.1, text: `♪ Bye bye ♪` },
-    { time: 69.0, text: `♪ Don't wanna be a fool for you ♪` },
-    { time: 71.3, text: `♪ Just another player in your game for two ♪` },
-    { time: 74.8, text: `♪ You may hate me but it ain't no lie ♪` },
-    { time: 77.9, text: `♪ Baby, bye bye bye ♪` },
-    { time: 79.2, text: `♪ Bye bye ♪` },
-    { time: 80.1, text: `♪ Don't really wanna make it tough ♪` },
-    { time: 82.5, text: `♪ I just wanna tell you that I've had enough ♪` },
-    { time: 85.8, text: `♪ It might sound crazy but it ain't no lie ♪` },
-    { time: 89.0, text: `♪ Baby bye bye bye ♪` },
-    { time: 91.8, text: `♪ Oh oh ♪` },
-    { time: 93.8, text: `♪ You just hit me with the truth ♪` },
-    { time: 97.0, text: `♪ Now girl you're more than welcome to ♪` },
-    { time: 99.8, text: `♪ So give me one good reason ♪` },
-    { time: 103.2, text: `♪ Baby come on ♪` },
-    { time: 105.4, text: `♪ I've lived for you and me ♪` },
-    { time: 108.1, text: `♪ And now I really come to see ♪` },
-    { time: 110.9, text: `♪ That life would be much better once you're gone ♪` },
-    { time: 117.3, text: `(Justin laughing)` },
-    { time: 119.1, text: `♪ I know that I can't take no more ♪` },
-    { time: 122.3, text: `♪ It ain't no lie ♪` },
-    { time: 124.6, text: `♪ I wanna see you out that door ♪` },
-    { time: 127.8, text: `♪ Baby, bye bye bye ♪` },
-    { time: 129.1, text: `♪ Bye bye ♪` },
-    { time: 130.1, text: `♪ Don't wanna be a fool for you ♪` },
-    { time: 132.3, text: `♪ Just another player in your game for two ♪` },
-    { time: 135.7, text: `♪ You may hate me but it ain't no lie ♪` },
-    { time: 139.0, text: `♪ Baby, bye bye bye ♪` },
-    { time: 140.3, text: `♪ Bye bye ♪` },
-    { time: 141.1, text: `♪ Don't really wanna make it tough ♪` },
-    { time: 143.4, text: `♪ I just wanna tell you that I've had enough ♪` },
-    { time: 146.9, text: `♪ Might sound crazy but it ain't no lie ♪` },
-    { time: 150.1, text: `♪ Baby, bye bye bye ♪` },
-    { time: 155.0, text: `♪ I'm giving up I know for sure ♪` },
-    { time: 156.9, text: `♪ I don't wanna be the reason for your love no more ♪` },
-    { time: 159.7, text: `♪ Bye bye ♪` },
-    { time: 160.6, text: `♪ I'm checking out, I'm signing off ♪` },
-    { time: 162.5, text: `♪ I don't wanna be the loser, and I've had enough ♪` },
-    { time: 167.0, text: `♪ I don't wanna be your fool in this game for two ♪` },
-    { time: 173.2, text: `♪ So I'm leaving you behind ♪` },
-    { time: 177.0, text: `(car screeching)` },
-    { time: 180.8, text: `(JC blowing)` },
-    { time: 183.6, text: `(upbeat music)` },
-    { time: 185.6, text: `♪ I don't wanna make it tough ♪` },
-    { time: 188.5, text: `♪ Make it tough ♪` },
-    { time: 189.3, text: `♪ But I've had enough ♪` },
-    { time: 191.7, text: `♪ And it ain't no lie bye ♪ ♪ Bye bye, baby ♪` },
-    { time: 196.0, text: `♪ Don't wanna be a fool for you ♪` },
-    { time: 198.0, text: `♪ Just another player in your game for two ♪` },
-    { time: 199.6, text: `♪ I don't wanna be your fool ♪` },
-    { time: 202.9, text: `♪ But it ain't no lie ♪` },
-    { time: 204.6, text: `♪ Baby, bye bye bye ♪` },
-    { time: 206.1, text: `♪ Bye bye ♪` },
-    { time: 207.0, text: `♪ Don't really wanna make it tough ♪` },
-    { time: 209.2, text: `♪ I just wanna tell you that I've had enough ♪` },
-    { time: 212.6, text: `♪ It might sound crazy but it ain't no lie ♪` },
-    { time: 215.8, text: `♪ Baby, bye bye bye ♪` },
-    { time: 217.2, text: `♪ Bye bye ♪` },
-    { time: 218.1, text: `♪ Don't really wanna make it tough ♪` },
-    { time: 220.2, text: `♪ I just wanna tell you that I had enough ♪` },
-    { time: 223.8, text: `♪ Might sound crazy but it ain't no lie ♪` },
-    { time: 227.0, text: `(cars screeching)` },
-    { time: 232.1, text: `(cars humming)` },
-    { time: 235.7, text: `♪ Bye bye bye ♪` },
-    { time: 236.6, text: `♪ Bye bye ♪` }
+        { time: -2.7, text: `(intro beaming)` },
+    { time: 0.5, text: `(creepy music)` },
+    { time: 10.3, text: `(gentle music)` },
+    { time: 17.8, text: `♪ Hey, hey ♪` },
+    { time: 20.2, text: `♪ Bye bye bye ♪` },
+    { time: 21.3, text: `♪ Bye bye ♪` },
+    { time: 22.2, text: `(upbeat music)` },
+    { time: 26.6, text: `♪ Bye bye ♪` },
+    { time: 30.6, text: `♪ Oh, oh ♪` },
+    { time: 33.2, text: `♪ I'm doing this tonight ♪` },
+    { time: 36.0, text: `♪ You're probably gonna start a fight ♪` },
+    { time: 38.8, text: `♪ I know this can't be right ♪` },
+    { time: 41.5, text: `♪ Hey, baby, come on ♪` },
+    { time: 44.4, text: `♪ I loved you endlessly ♪` },
+    { time: 47.1, text: `♪ When you weren't there for me ♪` },
+    { time: 49.9, text: `♪ So now it's time to leave and make it alone ♪` },
+    { time: 55.4, text: `♪ I know that I can't take no more ♪` },
+    { time: 58.8, text: `♪ It ain't no lie ♪` },
+    { time: 61.0, text: `♪ I wanna see you out that door ♪` },
+    { time: 64.1, text: `♪ Baby, bye bye bye ♪` },
+    { time: 65.5, text: `♪ Bye bye ♪` },
+    { time: 66.3, text: `♪ Don't wanna be a fool for you ♪` },
+    { time: 68.6, text: `♪ Just another player in your game for two ♪` },
+    { time: 72.2, text: `♪ You may hate me but it ain't no lie ♪` },
+    { time: 75.2, text: `♪ Baby, bye bye bye ♪` },
+    { time: 76.6, text: `♪ Bye bye ♪` },
+    { time: 77.4, text: `♪ Don't really wanna make it tough ♪` },
+    { time: 79.8, text: `♪ I just wanna tell you that I've had enough ♪` },
+    { time: 83.1, text: `♪ It might sound crazy but it ain't no lie ♪` },
+    { time: 86.4, text: `♪ Baby bye bye bye ♪` },
+    { time: 89.1, text: `♪ Oh oh ♪` },
+    { time: 91.1, text: `♪ You just hit me with the truth ♪` },
+    { time: 94.4, text: `♪ Now girl you're more than welcome to ♪` },
+    { time: 97.1, text: `♪ So give me one good reason ♪` },
+    { time: 100.5, text: `♪ Baby come on ♪` },
+    { time: 102.7, text: `♪ I've lived for you and me ♪` },
+    { time: 105.4, text: `♪ And now I really come to see ♪` },
+    { time: 108.2, text: `♪ That life would be much better once you're gone ♪` },
+    { time: 114.6, text: `(Justin laughing)` },
+    { time: 116.4, text: `♪ I know that I can't take no more ♪` },
+    { time: 119.7, text: `♪ It ain't no lie ♪` },
+    { time: 121.9, text: `♪ I wanna see you out that door ♪` },
+    { time: 125.1, text: `♪ Baby, bye bye bye ♪` },
+    { time: 126.5, text: `♪ Bye bye ♪` },
+    { time: 127.4, text: `♪ Don't wanna be a fool for you ♪` },
+    { time: 129.6, text: `♪ Just another player in your game for two ♪` },
+    { time: 133.1, text: `♪ You may hate me but it ain't no lie ♪` },
+    { time: 136.4, text: `♪ Baby, bye bye bye ♪` },
+    { time: 137.6, text: `♪ Bye bye ♪` },
+    { time: 138.4, text: `♪ Don't really wanna make it tough ♪` },
+    { time: 140.7, text: `♪ I just wanna tell you that I've had enough ♪` },
+    { time: 144.2, text: `♪ Might sound crazy but it ain't no lie ♪` },
+    { time: 147.4, text: `♪ Baby, bye bye bye ♪` },
+    { time: 152.4, text: `♪ I'm giving up I know for sure ♪` },
+    { time: 154.2, text: `♪ I don't wanna be the reason for your love no more ♪` },
+    { time: 157.0, text: `♪ Bye bye ♪` },
+    { time: 157.9, text: `♪ I'm checking out, I'm signing off ♪` },
+    { time: 159.8, text: `♪ I don't wanna be the loser, and I've had enough ♪` },
+    { time: 164.3, text: `♪ I don't wanna be your fool in this game for two ♪` },
+    { time: 170.6, text: `♪ So I'm leaving you behind ♪` },
+    { time: 174.4, text: `(car screeching)` },
+    { time: 178.1, text: `(JC blowing)` },
+    { time: 180.9, text: `(upbeat music)` },
+    { time: 183.0, text: `♪ I don't wanna make it tough ♪` },
+    { time: 185.9, text: `♪ Make it tough ♪` },
+    { time: 186.7, text: `♪ But I've had enough ♪` },
+    { time: 189.1, text: `♪ And it ain't no lie bye ♪ ♪ Bye bye, baby ♪` },
+    { time: 193.3, text: `♪ Don't wanna be a fool for you ♪` },
+    { time: 195.4, text: `♪ Just another player in your game for two ♪` },
+    { time: 197.0, text: `♪ I don't wanna be your fool ♪` },
+    { time: 200.2, text: `♪ But it ain't no lie ♪` },
+    { time: 202.0, text: `♪ Baby, bye bye bye ♪` },
+    { time: 203.4, text: `♪ Bye bye ♪` },
+    { time: 204.3, text: `♪ Don't really wanna make it tough ♪` },
+    { time: 206.6, text: `♪ I just wanna tell you that I've had enough ♪` },
+    { time: 209.9, text: `♪ It might sound crazy but it ain't no lie ♪` },
+    { time: 213.1, text: `♪ Baby, bye bye bye ♪` },
+    { time: 214.5, text: `♪ Bye bye ♪` },
+    { time: 215.4, text: `♪ Don't really wanna make it tough ♪` },
+    { time: 217.5, text: `♪ I just wanna tell you that I had enough ♪` },
+    { time: 221.2, text: `♪ Might sound crazy but it ain't no lie ♪` },
+    { time: 224.4, text: `(cars screeching)` },
+    { time: 229.5, text: `(cars humming)` },
+    { time: 233.0, text: `♪ Bye bye bye ♪` },
+    { time: 234.0, text: `♪ Bye bye ♪` }
         ];
 		// 載入YouTube API
         function loadYouTubeAPI() {

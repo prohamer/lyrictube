@@ -12,8 +12,8 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 10px;
-            background: #000;  
-            color: #fff;      
+            background: #000;  /* 原本是 #f9f9f9 */
+			color: #fff;      /* 加入這行確保文字顏色 */
         }
         .container {
             max-width: 1200px;
@@ -28,19 +28,19 @@
             height: 0;
             background: #000;
         }
-		
+		/* 手機版樣式 */
         @media (max-width: 768px) {
           .video-container {
                 position: sticky;
-                top: 60px;  
+                top: 60px;  /* 加大這個值，配合 Google Sites 的標題列高度 */
                 z-index: 100;
                 margin-bottom: 10px;
-                
-                margin-top: 60px;  
+                /* 可能需要額外的 margin-top */
+                margin-top: 60px;  /* 加入這行，確保初始位置也正確 */
             }
 
             body {
-              
+               /* 確保有足夠的頂部空間 */
                  padding-top: 60px;
             }
 			
@@ -63,8 +63,8 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            background: #1a1a1a;  
-			color: #fff;         
+            background: #1a1a1a;  /* 原本是 white */
+			color: #fff;         /* 加入這行 */
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
@@ -73,8 +73,8 @@
             align-items: center;
             justify-content: space-between;
             padding: 10px 15px;
-            background: #2d2d2d;  
-            border-bottom: 1px solid #333;  
+            background: #2d2d2d;  /* 原本是 #f0f0f0 */
+			border-bottom: 1px solid #333;  /* 原本是 #ddd */
             border-bottom: 1px solid #ddd;
         }
         .title {
@@ -126,7 +126,7 @@
         }
         .mode-label {
             font-size: 0.9em;
-            color: #ccc;  
+            color: #ccc;  /* 原本是 #666 */
         }
         #lyricsDisplay {
             flex: 1;
@@ -143,14 +143,14 @@
             display: flex;
             align-items: center;
             gap: 10px;
-			color: #ccc;  
+			color: #ccc;  /* 加入這行 */
         }
         .lyrics-line:hover {
-            background-color: #333;  
+            background-color: #333;  /* 原本是 #f0f0f0 */
         }
         .lyrics-line.active {
-            background-color: #2196F3;  
-            color: #fff;  
+            background-color: #2196F3;  /* 可以保留藍色或改成 #1a1a1a */
+			color: #fff;  /* 加入這行 */
             font-weight: bold;
         }
         .loop-btn {
@@ -160,7 +160,7 @@
             cursor: pointer;
             opacity: 0.5;
             transition: all 0.2s;
-            color: #c79ac5;  
+            color: #c79ac5;  /* 原本是 #666 */
         }
         .loop-btn:hover {
             opacity: 1;
@@ -215,7 +215,7 @@
             z-index: 999;
             max-height: 80vh;
             overflow-y: auto;
-            color: #000;
+			color: #000;
         }
         .help-panel.show {
             bottom: 0;
@@ -388,41 +388,64 @@
 
         // 歌詞數據
         let lyrics = [
-        { time:33.5, text: `Take a bow, the night is over` },
-		{ time:40.5, text: `This masquerade is getting older` },
-		{ time:45.5, text: `Light are low, the curtains down` },
-		{ time:51.0, text: `There's no one here (There's no one here, there's no one in the crowd)` },
-		{ time:57.0, text: `Say your lines but do you feel them` },
-		{ time:64.0, text: `Do you mean what you say when there's no one around (No one around)` },
-		{ time:70.5, text: `Watching you, watching me,` },
-		{ time:75.5, text: `One lonely star (One lonely star you don't know who you are)` },
-		{ time:81.2, text: `I've always been in love with you (Always with you)` },
-		{ time:87.0, text: `I guess you've always known it's true (You know it's true)` },
-		{ time:93.0, text: `You took my love for granted, why oh why` },
-		{ time:99.0, text: `The show is over, say good-bye` },
-		{ time:105.0, text: `Say good-bye (Bye bye), say good-bye` },
-		{ time:114.0, text: `Make them laugh, it comes so easy` },
-		{ time:121.0, text: `When you get to the part` },
-		{ time:124.0, text: `Where you're breaking my heart (Breaking my heart)` },
-		{ time:128.0, text: `Hide behind your smile,` },
-		{ time:132.0, text: `All the world loves a clown (Just make 'em smile the whole world loves a clown)` },
-		{ time:139.0, text: `Wish you well, I cannot stay` },
-		{ time:145.5, text: `You deserve an award for the role that you played (Role that you played)` },
-		{ time:152.0, text: `No more masquerade,` },
-		{ time:155.0, text: `You're one lonely star (One lonely star and you don't know who you are)` },
-		{ time:162.0, text: `I've always been in love with you (Always with you)` },
-		{ time:169.0, text: `I guess you've always known it's true (You know it's true)` },
-		{ time:174.0, text: `You took my love for granted, why oh why` },
-		{ time:180.0, text: `The show is over, say good-bye` },
-		{ time:196.0, text: `All the world is a stage (World is a stage)` },
-		{ time:201.0, text: `And everyone has their part (Has their part)` },
-		{ time:205.0, text: `But how was I to know which way the story'd go` },
-		{ time:213.0, text: `How was I to know you'd break (You'd break, you'd break, you'd break)` },
-		{ time:218.0, text: `You'd break my heart` },
-		{ time:223.0, text: `I've always been in love with you (I've always been in love with you)` },
-		{ time:229.0, text: `Guess you've always known` },
-		{ time:231.0, text: `You took my love for granted, why oh why` },
-		{ time:238.0, text: `The show is over, say good-bye` }
+        { time: 34.3, text: `Take a bow, the night is over` },
+    { time: 39.5, text: `This masquerade is getting older` },
+    { time: 46.2, text: `Lights are low, the curtains down` },
+    { time: 52.1, text: `There's no one here` },
+    { time: 54.8, text: `(There's no one here, there's no one in the crowd)` },
+    { time: 58.1, text: `Say your lines but do you feel them` },
+    { time: 60.7, text: `(There's no one here, there's no one in the crowd) Say your lines` },
+    { time: 63.5, text: `but do you feel them now` },
+    { time: 65.9, text: `When you mean what you say when there's no one around` },
+    { time: 71.4, text: `Watching you, watching me` },
+    { time: 75.9, text: `One lonely star` },
+    { time: 79.5, text: `(One lonely star, you don't know who you are)` },
+    { time: 82.3, text: `I've always been in love with you` },
+    { time: 85.6, text: `(Always with you)` },
+    { time: 88.5, text: `I guess you've always known it's true` },
+    { time: 93.2, text: `(You know it's true)` },
+    { time: 95.1, text: `You took my love for granted, why oh why` },
+    { time: 100.3, text: `The show is over, say goodbye` },
+    { time: 103.1, text: `(Say goodbye, say goodbye)` },
+    { time: 106.3, text: `Say goodbye (Say goodbye)` },
+    { time: 112.1, text: `Say goodbye` },
+    { time: 115.4, text: `Make them laugh, it comes so easy` },
+    { time: 121.3, text: `When you get to the part where you're breaking my heart` },
+    { time: 127.0, text: `(Breaking my heart)` },
+    { time: 128.8, text: `Hide behind your smile` },
+    { time: 133.0, text: `All the world loves a clown` },
+    { time: 136.8, text: `(Loves a clown, loves a clown)` },
+    { time: 139.8, text: `Wish you well, I cannot stay` },
+    { time: 142.8, text: `(Loves a clown)` },
+    { time: 145.0, text: `You deserve an award for the role that you played` },
+    { time: 151.0, text: `(Role that you played)` },
+    { time: 153.2, text: `No more masquerades` },
+    { time: 156.6, text: `You're one lonely star` },
+    { time: 160.2, text: `(One lonely star, you don't know who you are)` },
+    { time: 163.0, text: `I've always been in love with you` },
+    { time: 166.3, text: `(Always with you)` },
+    { time: 169.2, text: `I guess you've always known it's true` },
+    { time: 174.0, text: `(You know it's true)` },
+    { time: 175.9, text: `You took my love for granted, why oh why` },
+    { time: 181.1, text: `The show is over, say goodbye` },
+    { time: 183.8, text: `(Say goodbye, say goodbye)` },
+    { time: 187.1, text: `Say goodbye (Say goodbye)` },
+    { time: 193.0, text: `Say goodbye` },
+    { time: 196.1, text: `All the world is a stage` },
+    { time: 199.5, text: `(Is a stage, is a stage)` },
+    { time: 201.7, text: `And everyone has their part` },
+    { time: 205.9, text: `(Has their part, has their part)` },
+    { time: 207.8, text: `But how was I to know which way the story'd go` },
+    { time: 213.9, text: `How was I to know you'd break (You'd break, you'd break)` },
+    { time: 219.6, text: `You'd break my heart` },
+    { time: 223.4, text: `I've always been in love with you` },
+    { time: 226.8, text: `(I've always been in love with you)` },
+    { time: 230.8, text: `Guess you've always known You took my love for granted, why oh why` },
+    { time: 238.0, text: `The show is over, say goodbye` },
+    { time: 241.2, text: `(Say goodbye, say goodbye)` },
+    { time: 244.5, text: `Say goodbye (Say goodbye)` },
+    { time: 250.4, text: `Say goodbye` },
+    { time: 255.2, text: `Say goodbye` }
         ];
 		// 載入YouTube API
         function loadYouTubeAPI() {

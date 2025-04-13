@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+		<html>
+		<head>
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lyrics Player</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background: #000;  /* 原本是 #f9f9f9 */
+			color: #fff;      /* 加入這行確保文字顏色 */
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+        }
+        .video-container {
+            flex: 2;
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            background: #000;
+        }
+		/* 手機版樣式 */
+        @media (max-width: 768px) {
+          .video-container {
+                position: sticky;
+                top: 60px;  /* 加大這個值，配合 Google Sites 的標題列高度 */
+                z-index: 100;
+                margin-bottom: 10px;
+                /* 可能需要額外的 margin-top */
+                margin-top: 60px;  /* 加入這行，確保初始位置也正確 */
+            }
+
+            body {
+               /* 確保有足夠的頂部空間 */
+                 padding-top: 60px;
+            }
+			
+            .container {
+                flex-direction: column;
+                padding-top: 0;
+            }
+        }
+		
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .lyrics-container {
+            flex: 1;
+            height: calc(100vh - 40px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #1a1a1a;  /* 原本是 white */
+			color: #fff;         /* 加入這行 */
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .lyrics-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: #2d2d2d;  /* 原本是 #f0f0f0 */
+			border-bottom: 1px solid #333;  /* 原本是 #ddd */
+            border-bottom: 1px solid #ddd;
+        }
+        .title {
+            font-weight: bold;
+        }
+        .mode-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .mode-label {
+            font-size: 0.9em;
+            color: #ccc;  /* 原本是 #666 */
+        }
+        #lyricsDisplay {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .lyrics-line {
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+			color: #ccc;  /* 加入這行 */
+        }
+        .lyrics-line:hover {
+            background-color: #333;  /* 原本是 #f0f0f0 */
+        }
+        .lyrics-line.active {
+            background-color: #2196F3;  /* 可以保留藍色或改成 #1a1a1a */
+			color: #fff;  /* 加入這行 */
+            font-weight: bold;
+        }
+        .loop-btn {
+            padding: 5px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.2s;
+            color: #c79ac5;  /* 原本是 #666 */
+        }
+        .loop-btn:hover {
+            opacity: 1;
+        }
+        .loop-btn.active {
+            color: #ec21f3;
+            opacity: 1;
+        }
+        .lyrics-text {
+            flex: 1;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .lyrics-container {
+                height: 50vh;
+            }
+        }
+        /* 說明按鈕樣式 */
+        .help-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+		.help-button:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+        /* 說明面板樣式 */
+        .help-panel {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            transition: bottom 0.3s ease;
+            z-index: 999;
+            max-height: 80vh;
+            overflow-y: auto;
+			color: #000;
+        }
+        .help-panel.show {
+            bottom: 0;
+        }
+        .help-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .help-section {
+            margin-bottom: 20px;
+        }
+        .help-section h3 {
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        .help-list {
+            list-style: none;
+            padding: 0;
+        }
+        .help-list li {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .help-icon {
+            color: #666;
+            width: 24px;
+            text-align: center;
+        }
+        .close-help {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 998;
+        }
+        .backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        @media (max-width: 768px) {
+            .help-panel {
+                max-height: 70vh;
+            }
+        }
+    </style>
+
+
+    <div class="container">
+        <div class="video-container">
+            <div id="player"></div>
+        </div>
+        <div class="lyrics-container">
+            <div class="lyrics-header">
+                <div class="title">字幕同步播放器</div>
+                <div class="mode-switch">
+                    <span class="mode-label">自動播放模式</span>
+                    <label class="switch">
+                        <input type="checkbox" id="modeToggle" checked="">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div id="lyricsDisplay"></div>
+        </div>
+    </div>
+    <!-- 說明按鈕 -->
+    <button class="help-button" onclick="toggleHelp()">
+        <i class="fas fa-question-circle"></i>
+        使用說明
+    </button>
+    <!-- 背景遮罩 -->
+    <div class="backdrop" onclick="toggleHelp()"></div>
+    <!-- 說明面板 -->
+    <div class="help-panel">
+        <button class="close-help" onclick="toggleHelp()">×</button>
+        <div class="help-content">
+		<div class="help-section">
+                <h3>播放模式</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-play-circle help-icon"></i>
+                        <span>自動播放模式：影片會連續播放，歌詞自動跟隨（預設模式）</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-chalkboard-teacher help-icon"></i>
+                        <span>關閉自動播放模式：進入單句教學模式，點擊歌詞只播放單句，播完自動暫停</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-toggle-on help-icon"></i>
+                        <span>使用右上角的開關切換模式</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>歌詞控制</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-mouse-pointer help-icon"></i>
+                        <span>點擊任何歌詞行可跳轉到該位置</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-sync-alt help-icon"></i>
+                        <span>點擊歌詞前的循環按鈕可重複播放該句</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-sync-alt help-icon" style="color: #2196F3;"></i>
+                        <span>藍色圖標表示該句正在循環播放中</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>教學模式使用技巧</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-graduation-cap help-icon"></i>
+                        <span>適合逐句講解與練習</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-redo help-icon"></i>
+                        <span>可配合循環按鈕反覆練習困難句子</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-hand-point-up help-icon"></i>
+                        <span>點擊下一句繼續播放</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>自動播放模式使用技巧</h3>
+                <ul class="help-list">
+                    <li>
+                        <i class="fas fa-music help-icon"></i>
+                        <span>適合完整聆聽歌曲</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-scroll help-icon"></i>
+                        <span>歌詞會自動捲動並高亮</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-random help-icon"></i>
+                        <span>可隨時點擊歌詞跳轉</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        let player;
+        let currentInterval;
+        let loopingIndex = -1;
+        let isLooping = false;
+        let isContinuousMode = true;
+
+        // 歌詞數據
+        let lyrics = [
+        { time: 0.4, text: `기억해요?` },
+    { time: 1.8, text: `우리 차 맨 처음 사가지고 인천에 회 먹으러 갔을 때` },
+    { time: 4.2, text: `그 할머니가 그 라면에다가 산오징어` },
+    { time: 7.4, text: `크~ 진짜 맛있었지.` },
+    { time: 11.4, text: `아!` },
+    { time: 12.1, text: `사람 살려! 아무도 없어요! 은아야! 정신 차려! 선생님!` },
+    { time: 14.6, text: `은아야! 정신 차려! 은아야! 정신 차려!` },
+    { time: 18.3, text: `은아야! 은아야!` },
+    { time: 20.4, text: `은아야!` },
+    { time: 27.4, text: `저 임신했어요.` },
+    { time: 36.0, text: `미안해요. 나 조금 늦을 거 같아요.` },
+    { time: 38.6, text: `천번이고 다시 태어난대도` },
+    { time: 45.4, text: `그런 사람 또 없을테죠 음` },
+    { time: 46.6, text: `괜찮지?` },
+    { time: 47.7, text: `미쳤어?` },
+    { time: 50.4, text: `너 지금 실수하는 거야.` },
+    { time: 52.4, text: `슬픈 내 삶을 따뜻하게 해줄` },
+    { time: 57.0, text: `될 때까지 버텨야죠.` },
+    { time: 59.4, text: `지금은 그래야 돼요?` },
+    { time: 60.4, text: `참 고마운 사람입니다` },
+    { time: 63.5, text: `처음 만나서 뽀뽀하고` },
+    { time: 65.7, text: `그런 그댈 위해서 나의 심장쯤이야` },
+    { time: 68.6, text: `두 번째 만나서` },
+    { time: 71.6, text: `세 번째는 뭐 하죠, 우리?` },
+    { time: 73.2, text: `결혼이라도 해야 되나?` },
+    { time: 73.5, text: `설마든 아파도 좋은데` },
+    { time: 74.6, text: `우리 결혼하기로 했어.` },
+    { time: 76.5, text: `좀 빠르죠?` },
+    { time: 80.5, text: `사랑이란 그 말은 못해도 먼곳에서 이렇게` },
+    { time: 90.4, text: `바라만 보아도 모든걸 줄 수 있어서 사랑할 수 있어서` },
+    { time: 102.6, text: `난 슬퍼도 행복합니다` },
+    { time: 107.6, text: `걘 모를 겁니다.` },
+    { time: 109.5, text: `그를 처음 만난 날` },
+    { time: 111.5, text: `그는 나의 심장에` },
+    { time: 115.2, text: `지워지지 않는 문신처럼 새겨졌다는 걸` },
+    { time: 118.4, text: `그는 모릅니다.` },
+    { time: 121.7, text: `나 태어나 처음 가슴 떨리는` },
+    { time: 129.4, text: `이런 사람 또 없을테죠 음` },
+    { time: 135.6, text: `몰래 감춰둔 오랜 기억속에 단 하나의 사랑입니다` },
+    { time: 148.6, text: `그런 그댈 위해서 아픈 눈물쯤이야` },
+    { time: 156.6, text: `얼마든 참을 수 있는데` },
+    { time: 162.6, text: `사랑이란 그 말은 못해도 먼곳에서 이렇게` },
+    { time: 172.2, text: `바라만 보아도 모든걸 줄 수 있어서 사랑할 수 있어서` },
+    { time: 184.3, text: `난 슬퍼도 행복합니다` },
+    { time: 190.5, text: `아무것도 바라지 않아도` },
+    { time: 196.2, text: `그대 웃어준다면 난 행복할텐데` },
+    { time: 204.2, text: `다 끝났어.` },
+    { time: 204.8, text: `사랑은 주는거니까 그저 주는거니까` },
+    { time: 212.5, text: `난 슬퍼도 행복합니다` },
+    { time: 215.6, text: `가자` },
+    { time: 217.6, text: `더 뭘 미련을 가져.` },
+    { time: 223.5, text: `너도 그렇고, 나도 그렇고.` },
+    { time: 227.6, text: `이제 좀 제대로 좀 살아보자.` },
+    { time: 229.7, text: `그래서 내가 만나보란 사람 좀 만나 봤어?` },
+    { time: 232.2, text: `만나 봤어요. 걱정하지 마요.` },
+    { time: 233.8, text: `싸가지 없는 놈.` },
+    { time: 235.5, text: `애미 하는 말이 말 같지도 않은지.` },
+    { time: 240.7, text: `어!` },
+    { time: 243.2, text: `어, 어떡해 그래?` },
+    { time: 245.2, text: `어! 아!` },
+    { time: 248.3, text: `저 차는...` },
+    { time: 251.4, text: `바이탈은?` },
+    { time: 253.6, text: `BP 50 미만입니다.` },
+    { time: 255.4, text: `멘탈은? 멘탈?` },
+    { time: 256.6, text: `어, 의식이 없습니다.` },
+    { time: 257.6, text: `OP 프랩 준비하시고 CPR` },
+    { time: 260.2, text: `네.` },
+    { time: 278.6, text: `천번이고 다시 태어난대도` },
+    { time: 285.3, text: `그런 사람 또 없을테죠 음` },
+    { time: 292.3, text: `슬픈 내 삶을 따뜻하게 해줄` },
+    { time: 299.7, text: `참 고마운 사람입니다` },
+    { time: 305.6, text: `그런 그댈 위해서 나의 심장쯤이야` },
+    { time: 313.4, text: `얼마든 아파도 좋은데` },
+    { time: 334.1, text: `뭐해? 가방 하나 더 있어.` },
+    { time: 335.7, text: `사랑이란 그 말은 못해도 먼곳에서 이렇게` },
+    { time: 344.4, text: `바라만 보아도 모든걸 줄 수 있어서 사랑할 수 있어서` },
+    { time: 357.5, text: `난 슬퍼도 행복합니다` },
+    { time: 360.3, text: `난 슬퍼도 행복합니다` },
+    { time: 369.3, text: `내가 필요한 건 사랑이야.` },
+    { time: 373.2, text: `그 사랑이 꼭 널 필욘 없어.` },
+    { time: 376.9, text: `나 태어나 처음 가슴 떨리는` },
+    { time: 384.5, text: `이런 사람 또 없을테죠 음` },
+    { time: 390.0, text: `몰래 감춰둔 오랜 기억속에 단 하나의 사랑입니다` },
+    { time: 390.5, text: `어!` },
+    { time: 393.7, text: `괜찮아요?` },
+    { time: 404.2, text: `그런 그댈 위해서 아픈 눈물쯤이야` },
+    { time: 408.8, text: `암이에요.` },
+    { time: 411.9, text: `얼마든 참을 수 있는데` },
+    { time: 417.4, text: `사랑이란 그 말은 못해도 먼곳에서 이렇게` },
+    { time: 427.1, text: `바라만 보아도 모든걸 줄 수 있어서 사랑할 수 있어서` },
+    { time: 427.8, text: `이거 어디서 났어요?` },
+    { time: 429.6, text: `말기암 중환자나 처방을 하긴 하는데.` },
+    { time: 439.4, text: `난 슬퍼도 행복합니다` },
+    { time: 445.2, text: `아무것도 바라지 않아도` },
+    { time: 451.0, text: `처음 만나 뽀뽀하고` },
+    { time: 451.3, text: `그대 웃어준다면 난 행복할텐데` },
+    { time: 453.5, text: `두 번 만나 속살 보고` },
+    { time: 455.3, text: `세 번째는 뭐 하죠, 우리?` },
+    { time: 459.2, text: `사랑은 주는거니까 그저 주는거니까` },
+    { time: 460.7, text: `내 영혼 줄 거니까.` },
+    { time: 467.4, text: `난 슬퍼도 행복합니다` },
+    { time: 473.5, text: `그는 모릅니다.` },
+    { time: 476.3, text: `사랑은 가슴이 아닌 눈으로 보인다는 걸` },
+    { time: 482.0, text: `그래서 사랑이 보이지 않을 땐` },
+    { time: 484.1, text: `눈물이 흐른다는 걸` },
+    { time: 487.5, text: `그는 모릅니다.` }
+        ];
+		// 載入YouTube API
+        function loadYouTubeAPI() {
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        // YouTube API 準備完成
+        function onYouTubeIframeAPIReady() {
+            createPlayer('sPYaidnfLNk');
+            displayLyrics();
+        }
+
+        // 建立播放器
+        function createPlayer(videoId) {
+            player = new YT.Player('player', {
+                height: '360',
+                width: '640',
+                videoId: videoId,
+                playerVars: {
+                    modestbranding: 1,
+                    rel: 0
+                },
+                events: {
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
+                }
+            });
+        }
+
+        // 錯誤處理
+        function onPlayerError(event) {
+            console.error('Video player error:', event.data);
+        }
+
+        // 播放狀態改變
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING) {
+                if (isContinuousMode) {
+                    startTimeUpdate();
+                }
+            } else if (event.data === YT.PlayerState.ENDED) {
+                if (isLooping && loopingIndex !== -1) {
+                    seekTo(lyrics[loopingIndex].time);
+                }
+            } else {
+                stopTimeUpdate();
+            }
+        }
+
+        // 開始循環播放特定句子
+        function startLooping(index) {
+            if (loopingIndex === index) {
+                stopLooping();
+                return;
+            }
+            stopLooping();
+            loopingIndex = index;
+            isLooping = true;
+            updateLoopButtons();
+            seekTo(lyrics[index].time);
+        }
+
+        // 停止循環播放
+        function stopLooping() {
+            loopingIndex = -1;
+            isLooping = false;
+            updateLoopButtons();
+        }
+
+        // 更新循環按鈕狀態
+        function updateLoopButtons() {
+            const buttons = document.querySelectorAll('.loop-btn');
+            buttons.forEach((btn, index) => {
+                if (index === loopingIndex) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // 開始更新時間
+        function startTimeUpdate() {
+            clearInterval(currentInterval);
+            currentInterval = setInterval(() => {
+                const currentTime = player.getCurrentTime();
+                if (isLooping && loopingIndex !== -1) {
+                    const currentLine = lyrics[loopingIndex];
+                    const nextLine = lyrics[loopingIndex + 1];
+                    if (nextLine && currentTime >= nextLine.time) {
+                        seekTo(currentLine.time);
+                        return;
+                    }
+                }
+                updateActiveLyrics(currentTime);
+            }, 100);
+        }
+
+        // 停止更新時間
+        function stopTimeUpdate() {
+            if (currentInterval) {
+                clearInterval(currentInterval);
+                currentInterval = null;
+            }
+        }
+
+        // 更新當前歌詞
+        function updateActiveLyrics(currentTime) {
+            const lines = document.querySelectorAll('.lyrics-line');
+            lines.forEach((line, index) => {
+                const time = lyrics[index].time;
+                const nextTime = lyrics[index + 1]?.time || Infinity;
+                
+                if (currentTime >= time && currentTime < nextTime) {
+                    if (!line.classList.contains('active')) {
+                        line.classList.add('active');
+                        line.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center'
+                        });
+                    }
+                } else {
+                    line.classList.remove('active');
+                }
+            });
+        }
+
+        // 顯示歌詞
+        function displayLyrics() {
+            const lyricsDisplay = document.getElementById('lyricsDisplay');
+            lyricsDisplay.innerHTML = '';
+            
+            lyrics.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'lyrics-line';
+
+                const loopBtn = document.createElement('button');
+                loopBtn.className = 'loop-btn';
+                loopBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+                loopBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    startLooping(index);
+                };
+                div.appendChild(loopBtn);
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'lyrics-text';
+                textSpan.textContent = item.text;
+                textSpan.onclick = () => seekTo(item.time, index);
+                div.appendChild(textSpan);
+
+                lyricsDisplay.appendChild(div);
+            });
+        }
+
+        // 切換說明面板顯示狀態
+        function toggleHelp() {
+            const helpPanel = document.querySelector('.help-panel');
+            const backdrop = document.querySelector('.backdrop');
+            helpPanel.classList.toggle('show');
+            backdrop.classList.toggle('show');
+        }
+
+        // 點擊外部關閉說明面板
+        document.addEventListener('click', (e) => {
+            const helpPanel = document.querySelector('.help-panel');
+            const helpButton = document.querySelector('.help-button');
+            if (!helpPanel.contains(e.target) && !helpButton.contains(e.target)) {
+                helpPanel.classList.remove('show');
+                document.querySelector('.backdrop').classList.remove('show');
+            }
+        });
+
+        // 跳轉到指定時間
+        function seekTo(time, index) {
+            player.seekTo(time, true);
+            if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                player.playVideo();
+            }
+
+            if (!isContinuousMode && index !== undefined) {
+                const currentLine = lyrics[index];
+                const nextLine = lyrics[index + 1];
+                
+                // 清除之前的計時器
+                if (window.pauseTimer) {
+                    clearTimeout(window.pauseTimer);
+                }
+
+                // 設置新的暫停計時器
+                window.pauseTimer = setTimeout(() => {
+                    if (!isContinuousMode) {
+                        const currentTime = player.getCurrentTime();
+                        const targetTime = nextLine ? nextLine.time : (currentLine.time + 5);
+                        
+                        if (currentTime >= targetTime) {
+                            player.pauseVideo();
+                        } else {
+                            const remainingTime = (targetTime - currentTime) * 1000;
+                            setTimeout(() => player.pauseVideo(), remainingTime);
+                        }
+                    }
+                }, (nextLine ? nextLine.time - time : 5) * 1000);
+            }
+        }
+
+        // 在模式切換時也要處理計時器
+        document.getElementById('modeToggle').addEventListener('change', function(e) {
+            isContinuousMode = e.target.checked;
+            
+            if (window.pauseTimer) {
+                clearTimeout(window.pauseTimer);
+            }
+            
+            if (!isContinuousMode && player && player.pauseVideo) {
+                player.pauseVideo();
+            }
+        });
+
+        // 初始化
+        loadYouTubeAPI();
+    </script>
+
+
+
+		</body>
+		</html>

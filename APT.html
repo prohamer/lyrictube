@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-<html>
-<head>
-   
-        
+		<html>
+		<head>
 
 
     <meta charset="UTF-8">
@@ -31,26 +29,26 @@
             background: #000;
         }
 		/* 手機版樣式 */
-		@media (max-width: 768px) {
-			.video-container {
-				position: sticky;
-				top: 60px;  /* 加大這個值，配合 Google Sites 的標題列高度 */
-				z-index: 100;
-				margin-bottom: 10px;
-				/* 可能需要額外的 margin-top */
-				margin-top: 60px;  /* 加入這行，確保初始位置也正確 */
-			}
+        @media (max-width: 768px) {
+          .video-container {
+                position: sticky;
+                top: 60px;  /* 加大這個值，配合 Google Sites 的標題列高度 */
+                z-index: 100;
+                margin-bottom: 10px;
+                /* 可能需要額外的 margin-top */
+                margin-top: 60px;  /* 加入這行，確保初始位置也正確 */
+            }
 
-			body {
-				/* 確保有足夠的頂部空間 */
-				padding-top: 60px;
-			}
+            body {
+               /* 確保有足夠的頂部空間 */
+                 padding-top: 60px;
+            }
 			
-			.container {
-				flex-direction: column;
-				padding-top: 0;
-			}
-		}
+            .container {
+                flex-direction: column;
+                padding-top: 0;
+            }
+        }
 		
         .video-container iframe {
             position: absolute;
@@ -217,7 +215,7 @@
             z-index: 999;
             max-height: 80vh;
             overflow-y: auto;
-	    color: #000;
+			color: #000;
         }
         .help-panel.show {
             bottom: 0;
@@ -390,48 +388,89 @@
 
         // 歌詞數據
         let lyrics = [
-        { time: 0.0, text: "채영이가 좋아하는 랜덤 게임, 랜덤 게임,Game start" },
-    { time: 11.3, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트, 아파트, 아파트, uh, uh-huh, uh-huh" },
-    { time: 14.2, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트, 아파트, 아파트, uh, uh-huh, uh-huh" },
-    { time: 17.2, text: "Kissy face, kissy face" },
-    { time: 20.9, text: "sent to your phone, but" },
-    { time: 23.4, text: "I'm trying to kiss your lips for real ,uh-huh, uh-huh" },
-    { time: 26.2, text: "Red hearts, red hearts, that's what I'm on, yeah" },
-    { time: 29.0, text: "Come give me somethin' I can feel, oh-oh-oh" },
-    { time: 31.6, text: "Don't you want me like I want you, baby?" },
-    { time: 35.1, text: "Don't you need me like I need you now?" },
-    { time: 38.3, text: "Sleep tomorrow, but tonight go crazy" },
-    { time: 42.2, text: "All you gotta do is just meet me at the" },
-    { time: 46.4, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트" },
-    { time: 49.9, text: "uh, uh-huh, uh-hu" },
-    { time: 52.3, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트, " },
-    { time: 56.4, text: "uh-huh uhh uhh It's whatever," },
-    { time: 59.0, text: " it's whatever, it's whatever you like (whoo)" },
-    { time: 61.7, text: "Turn this 아파트 into a club (uh-huh, uh-huh)" },
-    { time: 65.1, text: "I'm talking drink, dance, smoke, freak, party all night (come on)" },
-    { time: 67.7, text: "건배, 건배, girl, what's up? Oh-oh-oh" },
-    { time: 71.8, text: "Don't you want me like I want you, baby?" },
-    { time: 75.0, text: "Don't you need me like I need you now?" },
-    { time: 78.0, text: "Sleep tomorrow, but tonight go crazy" },
-    { time: 81.2, text: "All you gotta do is just meet me at the" },
-    { time: 84.8, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트, uh, uh-huh, uh-huh" },
-    { time: 92.8, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트, uh, uh-huh, uh-huh" },
-    { time: 98.0, text: "Hey, so now you know the game" },
-    { time: 101.0, text: "Are you ready? 'Cause I'm comin' to get you, get you, get you" },
-    { time: 103.2, text: "Hold on, hold on, I'm on my way" },
-    { time: 109.0, text: "Yeah, yeah, yeah, yeah, yeah, I'm on my way" },
-    { time: 115.4, text: "Hold on, hold on, I'm on my way" },
-    { time: 121.8, text: "Yeah, yeah, yeah, yeah, yeah, I'm on my way" },
-    { time: 128.2, text: "Don't you want me like I want you, baby?" },
-    { time: 131.8, text: "Don't you need me like I need you now?" },
-    { time: 134.8, text: "Sleep tomorrow, but tonight go crazy" },
-    { time: 138.9, text: "All you gotta do is just meet me at the" },
-    { time: 144.5, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트, uh, uh-huh, uh-huh (just meet me at the)" },
-    { time: 147.7, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트, uh, uh-huh, uh-huh (just meet me at the)" },
-    { time: 150.3, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트, uh, uh-huh, uh-huh (just meet me at the)" },
-    { time: 152.8, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트, uh, uh-huh, uh-huh (just meet me at the)" },
-    { time: 157.4, text: "아파트, 아파트, 아파트, 아파트, 아파트, 아파트, uh, uh-huh, uh-huh (just meet me at the)" },
-    { time: 159.0, text: "아파트, 아파트, 아파트, 아파트,아파트, 아파트, uh, uh-huh, uh-huh" }
+        { time: 0.9, text: `창이와 좋아하는` },
+    { time: 2.4, text: `랜덤 게임` },
+    { time: 3.8, text: `랜덤 게임` },
+    { time: 4.9, text: `게임 스타트` },
+    { time: 6.8, text: `아파트 아파트 아파트 아파트` },
+    { time: 9.0, text: `아파트 아파트 아파트 아파트` },
+    { time: 11.0, text: `어 어허 어허` },
+    { time: 13.3, text: `아파트 아파트 아파트 아파트` },
+    { time: 15.2, text: `아파트 아파트 아파트 아파트` },
+    { time: 17.2, text: `어 어허 어허` },
+    { time: 19.6, text: `Kissy face, kissy face, sent to your phone, but` },
+    { time: 22.5, text: `I'm tryna kiss your lips for real` },
+    { time: 25.1, text: `Uh-huh, uh-huh` },
+    { time: 26.0, text: `Red hearts, red hearts, that's what I'm on, yeah` },
+    { time: 28.9, text: `Come give me something I can feel` },
+    { time: 31.8, text: `Oh-oh-oh` },
+    { time: 32.8, text: `Don't you want me like I want you, baby?` },
+    { time: 35.9, text: `Don't you need me like I need you now?` },
+    { time: 38.7, text: `Sleep tomorrow, but tonight go crazy` },
+    { time: 41.7, text: `All you gotta do is just meet me at the` },
+    { time: 44.2, text: `아파트 아파트` },
+    { time: 45.8, text: `아파트 아파트` },
+    { time: 47.8, text: `아파트 아파트` },
+    { time: 49.8, text: `Uh-huh uh-huh` },
+    { time: 51.8, text: `아파트 아파트` },
+    { time: 53.7, text: `아파트 아파트` },
+    { time: 55.8, text: `아파트 아파트` },
+    { time: 57.8, text: `Uh-huh uh-huh` },
+    { time: 58.5, text: `It's whatever, it's whatever, it's whatever you like` },
+    { time: 61.0, text: `Turn this apartment to a club` },
+    { time: 63.6, text: `Uh-huh uh-huh` },
+    { time: 64.6, text: `I'm talkin' drink and smoke, free, party all night` },
+    { time: 67.5, text: `Come on!` },
+    { time: 68.1, text: `Geonbae, geonbae, girl, what's up?` },
+    { time: 70.3, text: `Oh-oh-oh` },
+    { time: 71.1, text: `Don't you want me like I want you, baby?` },
+    { time: 74.1, text: `Don't you need me like I need you now?` },
+    { time: 77.2, text: `Sleep tomorrow, but tonight go crazy` },
+    { time: 80.4, text: `All you gotta do is just meet me at the` },
+    { time: 82.8, text: `아파트 아파트` },
+    { time: 84.2, text: `아파트 아파트` },
+    { time: 86.2, text: `아파트 아파트` },
+    { time: 88.2, text: `Uh-huh uh-huh` },
+    { time: 90.5, text: `아파트 아파트` },
+    { time: 92.3, text: `아파트 아파트` },
+    { time: 94.3, text: `아파트 아파트` },
+    { time: 96.8, text: `Hey!` },
+    { time: 97.4, text: `So now you know the game` },
+    { time: 99.1, text: `Are you ready?` },
+    { time: 100.6, text: `'Cause I'm comin' to get you` },
+    { time: 101.5, text: `Get you, get you! Hold on!` },
+    { time: 103.9, text: `Hold on!` },
+    { time: 105.1, text: `I'm on my way` },
+    { time: 107.3, text: `(Way)` },
+    { time: 110.0, text: `Yeah, yeah, yeah, yeah, yeah, yeah!` },
+    { time: 112.2, text: `I'm on my way` },
+    { time: 114.2, text: `(Way)` },
+    { time: 116.0, text: `Hold on!` },
+    { time: 117.6, text: `Hold on! I'm on my way` },
+    { time: 119.9, text: `(Way)` },
+    { time: 121.7, text: `Yeah, yeah, yeah, yeah, yeah, yeah!` },
+    { time: 124.2, text: `I'm on my way` },
+    { time: 126.1, text: `(Way)` },
+    { time: 129.2, text: `Don't you want me like I want you, baby?` },
+    { time: 132.1, text: `Don't you need me like I need you now?` },
+    { time: 134.9, text: `Sleep tomorrow, but tonight go crazy` },
+    { time: 137.9, text: `All you gotta do is just meet me at the` },
+    { time: 140.3, text: `아파트 아파트` },
+    { time: 142.2, text: `아파트 아파트` },
+    { time: 144.0, text: `아파트 아파트` },
+    { time: 145.9, text: `Just meet me at the` },
+    { time: 147.9, text: `아파트 아파트` },
+    { time: 148.8, text: `아파트 아파트` },
+    { time: 150.7, text: `아파트 아파트` },
+    { time: 152.7, text: `Just meet me at the` },
+    { time: 154.5, text: `아파트 아파트` },
+    { time: 156.4, text: `아파트 아파트` },
+    { time: 158.2, text: `아파트 아파트` },
+    { time: 160.2, text: `Just meet me at the` },
+    { time: 161.4, text: `아파트 아파트` },
+    { time: 163.3, text: `아파트 아파트` },
+    { time: 165.2, text: `아파트 아파트` },
+    { time: 167.6, text: `Uh-huh uh-huh` }
         ];
 		// 載入YouTube API
         function loadYouTubeAPI() {
@@ -659,7 +698,6 @@
     </script>
 
 
-     
-</body>
-</html>
 
+		</body>
+		</html>

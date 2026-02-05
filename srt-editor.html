@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRT 字幕編輯器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .top-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .youtube-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        #player {
+            max-width: 100%;
+            aspect-ratio: 16/9;
+        }
+
+        .subtitle-list {
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .subtitle-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+
+        .subtitle-item:hover {
+            background: #f8f9fa;
+        }
+
+        .subtitle-item.active {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+        }
+
+        .subtitle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle-number {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .time-input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .time-input-group label {
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .time-input-group input {
+            padding: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .subtitle-text {
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 15px;
+            background: white;
+            border: 2px solid #007bff;
+            border-radius: 6px;
+        }
+
+        .mode-toggle label {
+            margin: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .shift-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .shift-section input[type="number"] {
+            width: 100px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .export-btn {
+            background: #28a745;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+        .undo-redo {
+            display: flex;
+            gap: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .top-section {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 SRT 字幕編輯器</h1>
+
+        <div class="info-box">
+            <strong>使用說明：</strong>
+            <ol style="margin-left: 20px; margin-top: 10px;">
+                <li>貼上 YouTube 網址並載入影片</li>
+                <li>上傳 SRT 字幕檔案</li>
+                <li>播放影片時字幕會自動同步顯示</li>
+                <li>暫停影片後可調整每一句的時間軸</li>
+                <li>選擇「連動模式」後調整時間會影響後續所有字幕</li>
+            </ol>
+        </div>
+
+        <div class="top-section">
+            <div class="input-group">
+                <label for="youtube-url">YouTube 網址</label>
+                <input type="text" id="youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+                <button onclick="loadYouTube()" style="margin-top: 10px;">載入影片</button>
+            </div>
+
+            <div class="input-group">
+                <label for="srt-file">上傳 SRT 檔案</label>
+                <input type="file" id="srt-file" accept=".srt" onchange="loadSRT(event)">
+            </div>
+        </div>
+
+        <div class="youtube-container" id="youtube-container" style="display: none;">
+            <div id="player"></div>
+        </div>
+
+        <div class="controls">
+            <div class="mode-toggle">
+                <input type="checkbox" id="link-mode" checked>
+                <label for="link-mode">🔗 連動模式（調整時間會影響後續字幕）</label>
+            </div>
+
+            <div class="shift-section">
+                <label>整體平移：</label>
+                <input type="number" id="shift-amount" placeholder="毫秒" step="100" value="0">
+                <button onclick="shiftAllSubtitles()">⏱️ 套用平移</button>
+            </div>
+
+            <div class="undo-redo">
+                <button onclick="undo()" id="undo-btn" disabled>↶ 復原</button>
+                <button onclick="redo()" id="redo-btn" disabled>↷ 重做</button>
+            </div>
+
+            <button class="export-btn" onclick="exportSRT()">💾 匯出 SRT</button>
+        </div>
+
+        <div class="subtitle-list" id="subtitle-list">
+            <div style="padding: 40px; text-align: center; color: #999;">
+                請先上傳 SRT 檔案
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        let player;
+        let subtitles = [];
+        let history = [];
+        let historyIndex = -1;
+        let currentSubtitleIndex = -1;
+
+        // YouTube API 準備就緒
+        function onYouTubeIframeAPIReady() {
+            console.log('YouTube API Ready');
+        }
+
+        // 載入 YouTube 影片
+        function loadYouTube() {
+            const url = document.getElementById('youtube-url').value;
+            const videoId = extractVideoId(url);
+            
+            if (!videoId) {
+                alert('請輸入有效的 YouTube 網址');
+                return;
+            }
+
+            document.getElementById('youtube-container').style.display = 'block';
+
+            if (player) {
+                player.loadVideoById(videoId);
+            } else {
+                player = new YT.Player('player', {
+                    height: '480',
+                    width: '854',
+                    videoId: videoId,
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
+            }
+        }
+
+        function extractVideoId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function onPlayerReady(event) {
+            console.log('Player ready');
+            startTimeUpdate();
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                startTimeUpdate();
+            }
+        }
+
+        // 定時更新當前字幕
+        let updateInterval;
+        function startTimeUpdate() {
+            if (updateInterval) clearInterval(updateInterval);
+            
+            updateInterval = setInterval(() => {
+                if (player && player.getCurrentTime) {
+                    const currentTime = player.getCurrentTime() * 1000; // 轉換為毫秒
+                    updateCurrentSubtitle(currentTime);
+                }
+            }, 100); // 每100毫秒更新一次
+        }
+
+        function updateCurrentSubtitle(currentTime) {
+            let foundIndex = -1;
+            
+            for (let i = 0; i < subtitles.length; i++) {
+                if (currentTime >= subtitles[i].startTime && currentTime <= subtitles[i].endTime) {
+                    foundIndex = i;
+                    break;
+                }
+            }
+
+            if (foundIndex !== currentSubtitleIndex) {
+                currentSubtitleIndex = foundIndex;
+                highlightSubtitle(foundIndex);
+            }
+        }
+
+        function highlightSubtitle(index) {
+            const items = document.querySelectorAll('.subtitle-item');
+            items.forEach((item, i) => {
+                if (i === index) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // 載入 SRT 檔案
+        function loadSRT(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                subtitles = parseSRT(content);
+                saveHistory();
+                renderSubtitles();
+            };
+            reader.readAsText(file);
+        }
+
+        // 解析 SRT 格式
+        function parseSRT(content) {
+            const blocks = content.trim().split(/\n\n+/);
+            const subs = [];
+
+            blocks.forEach(block => {
+                const lines = block.split('\n');
+                if (lines.length >= 3) {
+                    const timeMatch = lines[1].match(/(\d{2}):(\d{2}):(\d{2}),(\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2}),(\d{3})/);
+                    
+                    if (timeMatch) {
+                        const startTime = parseTime(timeMatch[1], timeMatch[2], timeMatch[3], timeMatch[4]);
+                        const endTime = parseTime(timeMatch[5], timeMatch[6], timeMatch[7], timeMatch[8]);
+                        const text = lines.slice(2).join('\n');
+
+                        subs.push({
+                            number: parseInt(lines[0]),
+                            startTime: startTime,
+                            endTime: endTime,
+                            text: text
+                        });
+                    }
+                }
+            });
+
+            return subs;
+        }
+
+        function parseTime(h, m, s, ms) {
+            return parseInt(h) * 3600000 + parseInt(m) * 60000 + parseInt(s) * 1000 + parseInt(ms);
+        }
+
+        function formatTime(ms) {
+            const hours = Math.floor(ms / 3600000);
+            const minutes = Math.floor((ms % 3600000) / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            const milliseconds = ms % 1000;
+
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')},${String(milliseconds).padStart(3, '0')}`;
+        }
+
+        // 渲染字幕列表
+        function renderSubtitles() {
+            const container = document.getElementById('subtitle-list');
+            
+            if (subtitles.length === 0) {
+                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #999;">請先上傳 SRT 檔案</div>';
+                return;
+            }
+
+            container.innerHTML = subtitles.map((sub, index) => `
+                <div class="subtitle-item">
+                    <div class="subtitle-header">
+                        <span class="subtitle-number">#${sub.number}</span>
+                    </div>
+                    <div class="time-inputs">
+                        <div class="time-input-group">
+                            <label>開始時間</label>
+                            <input type="text" value="${formatTime(sub.startTime)}" 
+                                onchange="updateTime(${index}, 'start', this.value)">
+                        </div>
+                        <div class="time-input-group">
+                            <label>結束時間</label>
+                            <input type="text" value="${formatTime(sub.endTime)}" 
+                                onchange="updateTime(${index}, 'end', this.value)">
+                        </div>
+                    </div>
+                    <div class="subtitle-text">${sub.text}</div>
+                </div>
+            `).join('');
+        }
+
+        // 更新時間
+        function updateTime(index, type, value) {
+            const timeMatch = value.match(/(\d{2}):(\d{2}):(\d{2}),(\d{3})/);
+            if (!timeMatch) {
+                alert('時間格式錯誤，請使用 HH:MM:SS,mmm 格式');
+                renderSubtitles();
+                return;
+            }
+
+            const newTime = parseTime(timeMatch[1], timeMatch[2], timeMatch[3], timeMatch[4]);
+            const oldTime = type === 'start' ? subtitles[index].startTime : subtitles[index].endTime;
+            const diff = newTime - oldTime;
+
+            saveHistory();
+
+            if (type === 'start') {
+                subtitles[index].startTime = newTime;
+            } else {
+                subtitles[index].endTime = newTime;
+            }
+
+            // 連動模式
+            if (document.getElementById('link-mode').checked && diff !== 0) {
+                for (let i = index + 1; i < subtitles.length; i++) {
+                    subtitles[i].startTime += diff;
+                    subtitles[i].endTime += diff;
+                }
+            }
+
+            renderSubtitles();
+        }
+
+        // 整體平移
+        function shiftAllSubtitles() {
+            const shift = parseInt(document.getElementById('shift-amount').value) || 0;
+            if (shift === 0) return;
+
+            saveHistory();
+
+            subtitles.forEach(sub => {
+                sub.startTime += shift;
+                sub.endTime += shift;
+            });
+
+            renderSubtitles();
+            document.getElementById('shift-amount').value = '0';
+        }
+
+        // 歷史記錄管理
+        function saveHistory() {
+            // 刪除當前位置之後的歷史
+            history = history.slice(0, historyIndex + 1);
+            
+            // 保存當前狀態
+            history.push(JSON.parse(JSON.stringify(subtitles)));
+            historyIndex++;
+
+            // 限制歷史記錄數量
+            if (history.length > 50) {
+                history.shift();
+                historyIndex--;
+            }
+
+            updateHistoryButtons();
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                subtitles = JSON.parse(JSON.stringify(history[historyIndex]));
+                renderSubtitles();
+                updateHistoryButtons();
+            }
+        }
+
+        function redo() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                subtitles = JSON.parse(JSON.stringify(history[historyIndex]));
+                renderSubtitles();
+                updateHistoryButtons();
+            }
+        }
+
+        function updateHistoryButtons() {
+            document.getElementById('undo-btn').disabled = historyIndex <= 0;
+            document.getElementById('redo-btn').disabled = historyIndex >= history.length - 1;
+        }
+
+        // 匯出 SRT
+        function exportSRT() {
+            if (subtitles.length === 0) {
+                alert('沒有字幕可以匯出');
+                return;
+            }
+
+            let content = '';
+            subtitles.forEach((sub, index) => {
+                content += `${index + 1}\n`;
+                content += `${formatTime(sub.startTime)} --> ${formatTime(sub.endTime)}\n`;
+                content += `${sub.text}\n\n`;
+            });
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'edited_subtitles.srt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
